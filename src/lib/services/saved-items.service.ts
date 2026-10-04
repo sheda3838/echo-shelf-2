@@ -223,3 +223,76 @@ export async function findSavedItemByCanonicalUrl(
     .lean<ISavedItem | null>()
     .exec();
 }
+
+export interface PopulatedConnection {
+  connectedItemId: string;
+  relationshipType: string;
+  strength?: number;
+  explanation?: string;
+  connectedItemTitle?: string;
+  connectedItemContentType?: string;
+}
+
+export interface SavedItemWithConnections {
+  _id: Types.ObjectId;
+  userId: string;
+  title: string;
+  description?: string;
+  contentType: ContentType;
+  source: ISource;
+  metadata?: IPreviewMetadata;
+  tags?: string[];
+  canonicalUrl?: string;
+  contentFingerprint?: string;
+  connections: PopulatedConnection[];
+  lastOpened?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+/**
+ * Retrieve a saved item with populated connected item metadata (title, contentType).
+ * Strictly scoped to userId - both target item and connected items.
+ */
+export async function getSavedItemWithConnections(
+  userId: string,
+  itemId: string
+): Promise<SavedItemWithConnections | null> {
+  const item = await getSavedItemById(userId, itemId);
+  if (!item) return null;
+
+  if (!item.connections || item.connections.length === 0) {
+    return { ...item, connections: [] };
+  }
+
+  const connectedIds = item.connections.map((c) => c.connectedItemId);
+  const connectedDocs = await SavedItem.find(
+    { _id: { $in: connectedIds }, userId },
+    "_id title contentType"
+  )
+    .lean<Array<{ _id: Types.ObjectId; title: string; contentType: string }>>()
+    .exec();
+
+  const titleMap = new Map(
+    connectedDocs.map((doc) => [doc._id.toString(), { title: doc.title, contentType: doc.contentType }])
+  );
+
+  const populatedConnections: PopulatedConnection[] = item.connections.map((c) => {
+    const idStr = c.connectedItemId.toString();
+    const info = titleMap.get(idStr);
+    return {
+      connectedItemId: idStr,
+      relationshipType: c.relationshipType,
+      strength: c.strength,
+      explanation: c.explanation,
+      connectedItemTitle: info?.title || "Connected Item",
+      connectedItemContentType: info?.contentType,
+    };
+  });
+
+  return {
+    ...item,
+    connections: populatedConnections,
+  };
+}
+

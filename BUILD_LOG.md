@@ -148,3 +148,221 @@ Automated test suites were developed using the Node 22 native test runner via `t
    - `npx tsc --noEmit`: Passed with 0 errors.
    - `npm run lint`: Passed with 0 errors and 0 warnings.
    - `npm run build`: Production build succeeded in 2.2s with all App Router pages and route handlers compiled.
+
+---
+
+## Phase 2: Core Product & AI Intelligence Layer
+
+### 1. Architectural Philosophy: CAPTURE → CONNECT → RESURFACE
+
+Phase 2 implements the complete intelligence lifecycle of Echo Shelf 2.0:
+
+```
+[ USER INPUT ]
+      │
+      ▼
+[ SOURCE-SPECIFIC EXTRACTION LAYER ]
+(Readability / GitHub-GitLab APIs / YouTube Data API v3 / PDF-Office Parsers / Image Multimodal)
+      │
+      ▼
+[ NORMALIZED EXTRACTED CONTEXT ]
+      │
+      ▼
+[ GEMMA 4 26B (models/gemma-4-26b-a4b-it) ]
+      │
+      ▼
+[ STRICT SCHEMA VALIDATION ]
+      │
+      ▼
+[ USER REVIEW / PERSISTENCE ]
+```
+
+**Key Architectural Rule**: The AI is **never** asked to hallucinate or guess the contents of a raw URL, repository, YouTube video, or document. Deterministic source extraction occurs first; Gemma operates strictly on grounded, normalized text and metadata.
+
+---
+
+### 2. Exact AI Model Selection & Connectivity Results
+
+- **Model Identifier**: `models/gemma-4-26b-a4b-it`
+- **Inference Endpoint**: Google Gemini Developer API (`GEMINI_API_KEY`)
+- **Connectivity Verification**:
+  - Live server-side text inference test was executed against `models/gemma-4-26b-a4b-it`.
+  - The model returned valid, structured JSON responses.
+  - **Thought Token Handling**: `gemma-4-26b-a4b-it` emits reasoning tokens in candidate parts flagged with `thought: true`. The low-level Gemma service (`src/lib/ai/gemma.ts`) cleanly filters out all `thought: true` parts before extracting the final structured JSON, preventing reasoning leakage.
+- **Image Strategy Selected**:
+  - Hosted `gemma-4-26b-a4b-it` was tested with multimodal input using standard `inlineData` (base64 image payload).
+  - The model successfully analyzed the visual contents of images directly without requiring external OCR fallbacks. Native multimodal image analysis is used for image assets.
+
+---
+
+### 3. Source-Specific Extraction Layer (`src/lib/extractors/`)
+
+1. **Article & Generic Webpage Extractor (`src/lib/extractors/url.ts`)**:
+   - SSRF Protection: Inspects resolved hostnames and IP addresses against RFC 1918 private subnets (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16), loopback (127.0.0.1, ::1, localhost), and cloud link-local metadata endpoints (169.254.169.254). Internal targets are blocked.
+   - Parsing: Server-side `fetch` with 10s timeout, parsed into a DOM using `jsdom` and processed by `@mozilla/readability`.
+   - Content normalization: Extracts title, site name, author, publication date, and clean article body text capped at 15,000 characters.
+2. **Repository Extractor (`src/lib/extractors/repository.ts`)**:
+   - Supports both GitHub and GitLab URLs, including nested namespaces.
+   - Uses official REST APIs (`api.github.com`, `gitlab.com/api/v4`) to fetch repository metadata (description, language, stars, topics) and raw README contents.
+3. **YouTube Video Extractor (`src/lib/extractors/youtube.ts`)**:
+   - Parses watch URLs, youtu.be shortlinks, `/shorts/`, and `/embed/` links.
+   - Queries YouTube Data API v3 (`videos.list?part=snippet,contentDetails`) server-side via `YOUTUBE_API_KEY`.
+   - Extracts title, channel, publication date, high-resolution thumbnail (16:9), duration, and capped description.
+4. **Document Extractor (`src/lib/extractors/document.ts`)**:
+   - Parses PDF documents using `pdf-parse`.
+   - Parses DOCX, PPTX, and XLSX files using `officeparser`.
+   - Enforces a 20MB file size limit and 15,000-character context ceiling. Disables macro/script execution.
+   - Computes deterministic SHA-256 fingerprint for duplicate detection.
+5. **Image Extractor (`src/lib/extractors/image.ts`)**:
+   - Validates MIME types (PNG, JPEG, WEBP) and 10MB file size limits.
+   - Base64 encodes images for direct multimodal processing by Gemma.
+
+---
+
+### 4. Smart Capture & Dynamic Add Item (`/add`)
+
+- **Dynamic Form**: First meaningful choice is "What are you saving?" (Article, Video, Repository, URL, Image, Document, Note, Other). The form dynamically alters required inputs based on content type.
+- **Separate AI & User State**: AI-generated metadata is tracked separately from user edits. User edits are preserved, while stale AI suggestions are automatically invalidated if the user switches source inputs.
+- **Stale Request Guard**: Incremental request IDs prevent slow or out-of-order asynchronous AI requests from overwriting newer user selections.
+- **Potential Connections (Non-AI)**: Computes cheap deterministic candidate matches based on tag and keyword overlap against the current user's library before persisting.
+
+---
+
+### 5. Duplicate Detection Service (`src/lib/services/duplicate-detection.service.ts`)
+
+- **URL Sources**: Canonicalizes URLs by stripping tracking parameters (`utm_*`, `fbclid`, `gclid`, `ref`, `si`), lowercasing hostnames, normalizing trailing slashes, and removing URL fragments.
+- **Content Sources**: Calculates deterministic SHA-256 fingerprints across notes and document contents.
+- **Per-User Isolation**: Duplicate checks are strictly partitioned by `userId`. User A's checks never scan or expose User B's knowledge assets.
+
+---
+
+### 6. Smart Connections (Two-Stage AI Linking)
+
+- User-triggered via the **"Check Connections"** button on `/items/[id]`.
+- **Stage 1 (Deterministic Candidate Shortlist)**: Identifies top 5 candidate items in the user's library with highest tag/title/keyword overlap.
+- **Stage 2 (Gemma Semantic Analysis)**: Sends only target and candidate summaries to Gemma to determine conceptual links (`prerequisite`, `extends`, `complementary`, `conceptual-overlap`, `practical-application`, `contrast`, `alternative-approach`, `implementation-detail`).
+- **Reciprocal Links**: Reciprocal relationships are mirrored bidirectionally (e.g. `prerequisite` ↔ `extends`) with strict anti-hallucination validation.
+
+---
+
+### 7. Knowledge Clusters (`/clusters`)
+
+- User-triggered via **"Generate Clusters"** / **"Refresh Clusters"**.
+- Summarizes saved items into lightweight tokens (ID, title, description, tags, contentType) to maintain strict token discipline.
+- Gemma synthesizes thematic clusters (capped at ~6 clusters, avoiding superficial singletons or mega-clusters).
+- **Atomic Persistence**: On successful synthesis, new clusters replace old clusters; if an error or rate limit occurs, existing valid clusters are strictly preserved.
+
+---
+
+### 8. Contextual Rediscovery (`/rediscover`)
+
+- User-triggered via **"Check What's Relevant Now"** / **"Check Again"**. Zero API calls on passive page loads.
+- Generates clean search queries from user Knowledge Clusters, fetches recent news via GNews API v4 (`GNEWS_API_KEY`), normalizes and deduplicates articles.
+- Gemma evaluates semantic relationships between live news and saved assets. Only `strong` and `moderate` matches are retained with a grounded "Why this matters to your shelf" explanation.
+- Persists results per-user; preserves previous results on provider error.
+
+---
+
+### 9. Complete Verification & Quality Gates
+
+All automated test suites executed cleanly:
+
+```bash
+> npm run test:auth          # 11 tests passed
+> npm run test:isolation     # 27 tests passed
+> npm run test:duplicates    # 5 tests passed
+> npm run test:connections   # 4 tests passed
+> npm run test:clusters      # 6 tests passed
+> npm run test:rediscovery   # 7 tests passed
+> npm run test:capture       # 6 tests passed
+> npx tsc --noEmit           # 0 type errors
+> npm run lint               # 0 lint errors, 0 warnings
+> npm run build              # Production build passed (all 16 routes compiled)
+```
+
+---
+
+### 10. Real Problems Encountered & Solved in Phase 2
+
+1. **Gemma Thought Token Output Separation**:
+   - *Problem*: `models/gemma-4-26b-a4b-it` includes internal chain-of-thought tokens in candidate parts marked with `thought: true`. Directly reading `response.text` resulted in mixed output containing raw thinking traces.
+   - *Solution*: Filtered candidate parts for `!part.thought` before concatenating text in `src/lib/ai/gemma.ts`. Added a fallback regular expression strip `/<thought>[\s\S]*?<\/thought>/gi` for markdown fence cleaning.
+2. **Next.js Turbopack Client/Server Model Isolation**:
+   - *Problem*: Client components (`"use client"`) importing types from `@/models/*` caused Turbopack to attempt bundling Mongoose into the browser, failing on Node built-ins (`net`, `tls`).
+   - *Solution*: Maintained strict boundary where client components import domain types exclusively from `@/types` and communicate via typed JSON API routes.
+3. **Mongoose Lean Object Type Compatibility**:
+   - *Problem*: In `saved-items.service.ts`, `getSavedItemWithConnections` combined lean query results with an interface extending `ISavedItem` (which inherits Mongoose `Document`), causing TypeScript errors.
+   - *Solution*: Defined a clean DTO interface `SavedItemWithConnections` matching the lean plain-object shape returned from database queries.
+4. **Test Runner State Cleanliness**:
+   - *Problem*: `tests/clusters.test.ts` verified cluster survival across failed runs, leaving a cluster in the test tenant that shifted count assertions in subsequent tests.
+   - *Solution*: Added explicit tenant data cleanups before subtests to ensure complete deterministic isolation.
+
+---
+
+## Phase 2: Refinements & Bug Fixes Pass
+
+### 1. Multi-Source "Other" Content Type Support
+- **Architecture**: Refined `extractSource` (`src/lib/extractors/index.ts`) for `contentType === "Other"` to support composite knowledge inputs. Users can provide one or more combinations of:
+  - Text / Notes (observations, thoughts, takeaways)
+  - Reference URLs (YouTube videos, GitHub/GitLab repositories, web articles)
+  - Uploaded Documents (PDF, DOCX, TXT, MD)
+  - Uploaded Images (PNG, JPG, WEBP)
+- **Extraction Pipeline**: Each input is routed through its appropriate specialized extractor (`extractYouTubeVideo`, `extractRepository`, `extractArticleOrUrl`, `extractDocument`, `extractImage`).
+- **Context Normalization & Token Discipline**: Combines extracted texts into clean structured sections (`[Note / Text Excerpt]`, `[URL Source: ...]`, `[Document: ...]`, `[Image: ...]`) capped at 15,000 characters to prevent overflowing LLM context limits. Computes deterministic SHA-256 fingerprint from the combined content.
+- **Preview Image Preservation**: Extracts and propagates thumbnail preview from the first visual or URL source if available.
+
+### 2. Removal of Redundant Extraction/Duplicate Action & Unified "Generate Metadata" Flow
+- **User Experience**: Removed the separate "Extract Content & Check Duplicates" button from `/add`. Extraction and duplicate checks are internal implementation details.
+- **Unified Pipeline**: Clicking the single primary action **"Generate Metadata"** executes:
+  1. Validate source input(s) (ensuring at least one meaningful input is supplied).
+  2. Perform source-specific extraction via `/api/extract`.
+  3. Run deterministic duplicate detection & content fingerprinting against user's library.
+  4. Call Gemma AI (`/api/smart-capture`) to generate title, description, and suggested tags.
+  5. Compute deterministic Potential Connections candidate matches.
+- **Friendly Duplicate Banner**: If an existing item with the same canonical URL or content fingerprint is found, a non-blocking warning is displayed with a link to view the existing item in a new tab. Duplicate detection logic was strictly preserved.
+
+### 3. Preservation of Existing Preview Image Behavior
+- The existing preview image URL workflow was strictly preserved.
+- `previewImageUrl` is maintained across models, DTOs, extraction results, Gemma outputs, and Mongoose persistence (`metadata.imageUrl`).
+- The editable "Preview Image URL" field remains available in the Add Item review step.
+
+### 4. Client-Side Confirm Password on Sign-Up
+- Added `Confirm Password` field to `src/app/signup/page.tsx`.
+- Strictly client-side validation: verifies `password === confirmPassword` before submission. If they differ, displays inline error and prevents form submission.
+- The `confirmPassword` field is not named in form data and is never sent to Supabase, logged, or stored in MongoDB.
+- Sign In and Google OAuth remain completely unchanged.
+
+### 5. Resource-Viewing Actions Opened in New Tabs
+- Audited all resource-viewing links across the application:
+  - External resource links (Original URL, YouTube link, GNews articles): `target="_blank" rel="noopener noreferrer"`.
+  - Internal resource exploration links ("View Connected Item", "View Saved Item", card click in Library, cluster member links, duplicate warning link): `target="_blank" rel="noopener noreferrer"`.
+  - Application navigation (`/library`, `/clusters`, `/rediscover`, `/add`, `/login`, `/signup`) continues standard same-tab navigation.
+
+### 6. Knowledge Clusters Bug: Root Cause & Resolution
+- **Root Cause**: Gemma 4 26B (`models/gemma-4-26b-a4b-it`) uses internal chain-of-thought tokens tagged with `thought: true` in candidate parts. For complex synthesis across multiple items, Gemma's internal reasoning consumed ~3,000 tokens. Because `callGemma` in `src/lib/ai/gemma.ts` configured `maxOutputTokens: 2048`, generation was truncated midway through the thought phase with `finishReason: MAX_TOKENS` before emitting the final non-thought JSON part (`thought: undefined`). Consequently, the thought-filtering logic yielded 0 answer parts, causing cluster synthesis to fail or return empty arrays.
+- **Fix**: Increased `maxOutputTokens` to `8192` in `src/lib/ai/gemma.ts`, allowing Gemma sufficient token budget to complete internal chain-of-thought and output valid JSON.
+- **Live Verification**: Verified against live database assets for user `549a4fb6-c1ac-4c1b-9e66-0f72ccc0812b`. Gemma synthesized 3 cohesive thematic clusters ("Productivity & Knowledge Management", "Cognitive Processes & Learning", "Mental Models & Strategic Thinking") which persisted atomically.
+
+### 7. Graceful Handling of Empty / Insufficient Cluster States
+- Updated `src/lib/services/knowledge-clusters.service.ts` and `src/app/api/clusters/route.ts` so that when a user's items do not yet have enough meaningful conceptual relationships to form clusters of 2+ items, it does not throw an application error or delete previous clusters.
+- Displays the clear, friendly notice: *"Not enough related knowledge yet to create meaningful clusters. Save a few related items and try again."*
+
+### 8. End-to-End Contextual Rediscovery Verification
+- With Knowledge Clusters successfully generated, executed live end-to-end Contextual Rediscovery against GNews API v4 and Gemma reasoning.
+- Live GNews articles were fetched, normalized, and deduplicated. Gemma identified a grounded match with the user's saved 80/20 Rule asset, generating a tailored "Why this matters to your shelf" explanation and persisting the result.
+- Rediscovery is strictly user-triggered (never triggered on page load).
+
+### 9. Quality Gates & Regression Suite
+- All automated test suites and compiler checks passed cleanly:
+  - `npm run test:auth`: 11 passed (0 failed)
+  - `npm run test:isolation`: 27 passed (0 failed)
+  - `npm run test:duplicates`: 5 passed (0 failed)
+  - `npm run test:connections`: 4 passed (0 failed)
+  - `npm run test:clusters`: 6 passed (0 failed)
+  - `npm run test:rediscovery`: 7 passed (0 failed)
+  - `npm run test:capture`: 7 passed (0 failed) [Added test for Multi-Source Other Extractor]
+  - `npx tsc --noEmit`: 0 type errors
+  - `npm run lint`: 0 lint errors, 0 warnings
+  - `npm run build`: Production build succeeded (all routes compiled cleanly)
+
+
