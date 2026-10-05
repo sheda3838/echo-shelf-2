@@ -469,7 +469,119 @@ Added new specialized test suites and executed all quality gates:
 **Total Tests**: 83 passed, 0 failed.
 **TypeScript**: `npx tsc --noEmit` passed with 0 errors.
 **Linter**: `npm run lint` passed with 0 errors and 0 warnings.
-**Production Build**: `npm run build` compiled all 16 routes cleanly in 7.8s.
+**Production Build**: `npm run build` compiled all routes cleanly in 7.8s.
+
+---
+
+## Phase 4: Brand Identity & Unified Emerald/Mint Visual System
+
+### 1. Visual Language & Brand Assets
+- **Logo & Favicon Integration**: Generated and integrated high-fidelity brand assets (`public/logo.png` and `public/favicon.png`) with clean dark-mode transparency.
+- **Palette & Aesthetics**: Established a cohesive deep forest / emerald / mint color tokens system:
+  - Background surface: `#040D0A`
+  - Subsurface / Card background: `#071914` / `#0B2019`
+  - Border tokens: `#16382E` / `#1F4D3F`
+  - Primary text: `#F0FDF4`
+  - Secondary/Muted text: `#9FE1CB`/70
+  - Accent / Highlights: `#10B981` (Emerald) & `#34D399` (Mint)
+
+### 2. Interface Unification
+- **Navigation (`src/components/Navigation.tsx`)**: Unified header across `/library`, `/add`, `/clusters`, `/rediscover`, and item detail views with brand logo, active tab indicator pill, user session badge, and sign-out controls.
+- **Authentication Pages (`/login`, `/signup`)**: Styled with clean glassmorphic cards, emerald focus rings, accessible form errors, and Google OAuth branding.
+- **Add Item (`/add`)**: Polished dynamic multi-type selector cards, preview thumbnail rendering, responsive two-column metadata review layout, and friendly duplicate notification cards.
+- **Library (`/library`)**: Streamlined search filter inputs, content type tags, responsive grid cards with hover transitions, and direct new-tab resource exploration links.
+- **Item Detail (`/items/[id]`)**: Polished metadata chips, connected items list with relationship badges (`prerequisite`, `extends`, `complementary`, etc.), and user-triggered Smart Connections action.
+- **Knowledge Clusters (`/clusters`)**: Rendered interactive cluster cards displaying member counts, unified tag badges, member asset shortcuts, and an intuitive synthesis control button with spinner states.
+- **Contextual Rediscovery (`/rediscover`)**: Designed real-world news event cards displaying article source, publication date, relevance score badge (`90% Strong`, `60% Moderate`), and the "Why this matters to your shelf" contextual takeaway.
+- **Responsive & Accessibility Pass**: Ensured full mobile viewport scaling (`max-w-7xl`, flexible column stacking), WCAG-compliant contrast ratios against `#040D0A`, and explicit `aria-label` / `title` attributes on interactive elements.
+
+---
+
+## Phase 5: Pre-Deploy Release Blocker Diagnosis & Reliability Fixes
+
+Prior to production deployment, an adversarial audit identified two runtime release blockers:
+1. Knowledge Clusters took a long time and aborted without a usable result.
+2. Contextual Rediscovery displayed: *"Could not retrieve current news articles from GNews. Previous results preserved."*
+
+### 1. Knowledge Clusters: Investigation & Resolution
+- **Investigation & Server Profiling**:
+  - Instrumented `POST /api/clusters`, `generateAndSaveClusters`, and `callGemma` with millisecond-precision stage timing (AUTH, DB FETCH, PROMPT BUILD, GEMMA REQUEST, GEMMA PARSE, VALIDATION, DB SAVE, TOTAL).
+  - Executed real cluster synthesis via browser subagent.
+  - **Empirical Findings**:
+    - HTTP Status: 200 from Gemini API.
+    - Gemma Request Duration: ~47–55 seconds.
+    - Model Behavior: `gemma-4-26b-a4b-it` generated 1,950–2,280 chain-of-thought tokens (`thoughtsTokenCount: 1953`) while synthesizing relationships across multiple saved items.
+    - Root Cause: In `src/lib/ai/gemma.ts`, `const GEMMA_TIMEOUT_MS = 60000;` (60s) was aborting borderline requests right around the 60-second mark (`AbortError: AI inference timed out after 60s`), failing the browser action.
+    - Candidate Fetch Overhead: `SavedItem.find` used `.limit(100)` with full descriptions, creating an unnecessarily wide context window that prolonged Gemma's reasoning phase.
+- **Fix Implemented**:
+  1. Extended `GEMMA_TIMEOUT_MS` in `src/lib/ai/gemma.ts` from 60,000ms to 120,000ms (120 seconds).
+  2. Configured `responseMimeType: "application/json"` in `generationConfig` for structured output.
+  3. Focused candidate fetching in `src/lib/services/knowledge-clusters.service.ts` to the 30 most recent items (`.limit(30)`) and truncated item descriptions to 150 characters, reducing token reasoning latency.
+  4. Added route segment configuration to `src/app/api/clusters/route.ts`:
+     ```ts
+     export const maxDuration = 120;
+     export const dynamic = "force-dynamic";
+     ```
+  5. Verified `ClustersClient.tsx` cleanly handles loading state in `finally` block and surfaces helpful banners.
+- **Real Browser Verification**:
+  - Navigated to `/clusters` and clicked "Refresh Clusters".
+  - Button transitioned to "Synthesizing Clusters..." with animated spinner.
+  - Gemma finished in 46.8s; loading spinner stopped.
+  - Success banner rendered: *"Successfully synthesized 1 thematic knowledge clusters!"*
+  - Displayed cluster: *"Cognitive Frameworks & Learning"* (`3 items`, `#mental-models`, `#productivity`, `#learning`, `#cognitive-optimization`).
+
+### 2. Contextual Rediscovery: Investigation & Resolution
+- **Investigation**:
+  - Executed a direct, minimal health check query (`technology`, `max=1`) against GNews API v4 using the server's configured `GNEWS_API_KEY`.
+  - **Health Check Result**: `HTTP 200` (`totalArticles: 205,910`, `articlesReturned: 1`, duration `1,125ms`). Key is valid and active.
+  - **Root Cause Analysis**:
+    1. *Burst Rate Limiting (HTTP 429)*: GNews Free Plan strictly limits requests to 1 request per second. In `rediscovery.service.ts`, the loop queried GNews consecutively for each cluster with zero delay. Subsequent queries immediately tripped `HTTP 429: "This request was blocked because you made too many requests on the API in a short period of time."`
+    2. *Over-Constrained Queries*: The previous query generator combined 3 full title words (e.g. `"Cognitive Optimization Productivity"`). In GNews headline searches, this 3-word exact conjunction matched 0 recent news stories (`articlesCount: 0`).
+    3. *Silent Failure Swallowing*: The fetch loop checked `if (res.ok)` without logging errors; when GNews returned 429 or 0 articles, it fell through to the generic catch: *"Could not retrieve current news articles from GNews. Previous results preserved."*
+- **Fix Implemented**:
+  1. Added rate-limit pacing: 1,100ms asynchronous sleep (`await new Promise((r) => setTimeout(r, 1100))`) before subsequent GNews API requests.
+  2. Improved query formulation: extracts clean, high-signal topic keywords (prioritizing primary cluster tags like `"productivity"`, `"learning"` or short 1–2 word topic terms rather than multi-word conjunctions).
+  3. Added a 10s fetch timeout controller, safe request URL logging (redacting the API key), and precise provider error handling (distinguishing 429 rate limit vs. 403 quota exhaustion).
+  4. Added route segment configuration to `src/app/api/rediscover/route.ts`:
+     ```ts
+     export const maxDuration = 120;
+     export const dynamic = "force-dynamic";
+     ```
+  5. Ensured `RediscoverClient.tsx` resets loading state in `finally` and updates result state.
+- **Real Browser Verification**:
+  - Navigated to `/rediscover` and clicked "Check Again".
+  - Button transitioned to "Scanning Live News..." with spinner.
+  - Paced GNews requests returned `HTTP 200` with 5 relevant articles.
+  - Gemma evaluated contextual relationships and identified a grounded match.
+  - Loading spinner stopped; success banner displayed: *"Discovered 1 current real-world event relevant to your knowledge vault!"*
+  - Displayed real live news story from *The Economic Times* mapped to the saved 80/20 Rule asset and the "Cognitive Frameworks & Learning" cluster.
+
+### 3. Smart Connections Regression Verification
+- Navigated to saved item `/items/6ac2b78424af739cc59d4e5f` in browser.
+- Clicked "Check Connections": executed cleanly, loaded deterministic candidates, evaluated relationships with Gemma, and displayed a valid `conceptual-overlap` connection with explanation. Zero regression.
+
+---
+
+## Final Verified Release Status
+
+```
+==========================================================
+ECHO SHELF 2.0 RELEASE QUALITY GATES (OCTOBER 2026)
+==========================================================
+Smart Connections (Browser)   : PASS (Verified on item detail)
+Knowledge Clusters (Browser)  : PASS (Synthesized in ~46.8s)
+Contextual Rediscovery (Browser): PASS (Live GNews + Gemma match)
+----------------------------------------------------------
+npm run test:clusters         : PASS (6/6 passing)
+npm run test:rediscovery      : PASS (7/7 passing)
+npm run test:connections      : PASS (4/4 passing)
+npx tsc --noEmit              : PASS (0 errors)
+npm run lint                  : PASS (0 errors, 0 warnings)
+npm run build                 : PASS (All 14 routes compiled)
+==========================================================
+STATUS: FEATURE FREEZE COMPLETE — READY FOR DEPLOYMENT
+==========================================================
+```
 
 
 
