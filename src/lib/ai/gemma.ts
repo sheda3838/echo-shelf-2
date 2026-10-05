@@ -98,10 +98,11 @@ async function callGemma(
     });
   }
 
-  const GEMMA_TIMEOUT_MS = 60000;
+  const GEMMA_TIMEOUT_MS = 120000;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), GEMMA_TIMEOUT_MS);
 
+  const reqStart = Date.now();
   let response: Response;
   try {
     response = await fetch(endpoint, {
@@ -113,6 +114,7 @@ async function callGemma(
         generationConfig: {
           temperature: 0.2,
           maxOutputTokens: 8192,
+          responseMimeType: "application/json",
         },
       }),
     });
@@ -125,6 +127,9 @@ async function callGemma(
   } finally {
     clearTimeout(timeoutId);
   }
+
+  const reqDuration = Date.now() - reqStart;
+  console.log(`[GEMMA INSPECT] HTTP ${response.status} (${reqDuration}ms)`);
 
   if (!response.ok) {
     if (response.status === 429) {
@@ -141,6 +146,10 @@ async function callGemma(
   }
 
   const candidate = data.candidates[0];
+  console.log(`[GEMMA INSPECT] finishReason: ${candidate?.finishReason}`);
+  if (data.usageMetadata) {
+    console.log(`[GEMMA INSPECT] token usage: prompt=${data.usageMetadata.promptTokenCount}, candidates=${data.usageMetadata.candidatesTokenCount}, thoughts=${data.usageMetadata.thoughtsTokenCount}, total=${data.usageMetadata.totalTokenCount}`);
+  }
 
   // Explicitly detect and handle model truncation / token exhaustion
   if (candidate.finishReason === "MAX_TOKENS") {
@@ -150,11 +159,11 @@ async function callGemma(
   }
 
   const candidateParts = candidate.content?.parts || [];
-
-  // Filter out chain-of-thought tokens (thought: true) to extract only the final answer
+  const thoughtParts = candidateParts.filter((p: { thought?: boolean }) => p.thought);
   const answerParts = candidateParts.filter(
     (p: { thought?: boolean; text?: string }) => !p.thought && typeof p.text === "string"
   );
+  console.log(`[GEMMA INSPECT] response parts: total=${candidateParts.length}, thoughts=${thoughtParts.length}, non-thoughts=${answerParts.length}`);
 
   if (answerParts.length > 0) {
     return answerParts.map((p: { text: string }) => p.text).join("\n");
@@ -387,8 +396,16 @@ ${items
   .join("\n")}
 </untrusted_data>`;
 
+  const tGemmaStart = Date.now();
   const rawResponse = await callGemma(prompt);
+  const tGemmaEnd = Date.now();
+  console.log(`[CLUSTER STAGE] GEMMA REQUEST: ${tGemmaEnd - tGemmaStart} ms`);
+
+  const tParseStart = Date.now();
   const parsed = cleanAndParseJson<{ clusters: ClusterEvaluation[] }>(rawResponse, { clusters: [] });
+  const tParseEnd = Date.now();
+  const clustersFound = Array.isArray(parsed?.clusters) ? parsed.clusters.length : 0;
+  console.log(`[CLUSTER STAGE] GEMMA PARSE: ${tParseEnd - tParseStart} ms (raw output length: ${rawResponse.length}, parsed clusters: ${clustersFound})`);
 
   const validItemIds = new Set(items.map((i) => i.id));
 

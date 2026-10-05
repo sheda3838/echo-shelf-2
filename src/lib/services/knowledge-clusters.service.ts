@@ -199,36 +199,44 @@ export async function generateAndSaveClusters(
     throw new Error("userId is required for cluster generation.");
   }
 
+  const tDbStart = Date.now();
   await connectToDatabase();
 
-  // 1. Fetch user's saved items (lightweight metadata)
+  // 1. Fetch user's saved items (lightweight metadata, top 30 most recent)
   // Dynamic import to avoid circular dependency
   const { SavedItem } = await import("@/models/SavedItem");
   const items = await SavedItem.find({ userId })
     .select("_id title description tags contentType")
     .sort({ createdAt: -1 })
-    .limit(100)
+    .limit(30)
     .lean()
     .exec();
+
+  const tDbFetch = Date.now();
+  console.log(`[CLUSTER STAGE] DB FETCH: ${tDbFetch - tDbStart} ms (${items.length} items)`);
 
   if (items.length < 2) {
     throw new Error("At least 2 saved items are required to generate knowledge clusters.");
   }
 
+  const tPromptStart = Date.now();
   const { generateKnowledgeClustersAI } = await import("@/lib/ai/gemma");
 
   const itemSummaries = items.map((i) => ({
     id: i._id.toString(),
     title: i.title,
-    description: i.description,
+    description: (i.description || "").slice(0, 150),
     contentType: i.contentType,
-    tags: i.tags || [],
+    tags: (i.tags || []).slice(0, 6),
   }));
+  const tPromptEnd = Date.now();
+  console.log(`[CLUSTER STAGE] PROMPT BUILD: ${tPromptEnd - tPromptStart} ms`);
 
   // 2. Call Gemma AI to synthesize clusters
   const generated = await generateKnowledgeClustersAI(itemSummaries);
 
   // 3. Filter and validate cluster memberships
+  const tValStart = Date.now();
   const validItemIdsSet = new Set(itemSummaries.map((i) => i.id));
   const validatedDocs = (generated || [])
     .map((c) => ({
@@ -242,16 +250,22 @@ export async function generateAndSaveClusters(
     }))
     .filter((c) => c.itemIds.length >= 2);
 
+  const tValEnd = Date.now();
+  console.log(`[CLUSTER STAGE] VALIDATION: ${tValEnd - tValStart} ms (${validatedDocs.length} valid clusters)`);
+
+  const tSaveStart = Date.now();
   if (validatedDocs.length === 0) {
     // Not enough related knowledge yet to create meaningful clusters.
     // Preserve existing clusters if user already had them, otherwise return empty list.
     const existing = await KnowledgeCluster.find({ userId }).lean().exec();
+    console.log(`[CLUSTER STAGE] DB SAVE: ${Date.now() - tSaveStart} ms (0 valid clusters, preserved ${existing.length} existing)`);
     return existing.map((doc) => doc as unknown as IKnowledgeCluster);
   }
 
   // 4. Atomically replace user's clusters
   await KnowledgeCluster.deleteMany({ userId });
   const created = await KnowledgeCluster.insertMany(validatedDocs);
+  console.log(`[CLUSTER STAGE] DB SAVE: ${Date.now() - tSaveStart} ms (${created.length} clusters saved)`);
 
   return created.map((doc) => doc.toObject() as IKnowledgeCluster);
 }

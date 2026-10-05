@@ -5,6 +5,9 @@ import {
   generateAndSaveRediscovery,
 } from "@/lib/services/rediscovery.service";
 
+export const maxDuration = 120;
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const user = await getAuthenticatedUser();
   if (!user) {

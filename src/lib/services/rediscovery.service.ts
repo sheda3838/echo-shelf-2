@@ -230,7 +230,7 @@ export async function generateAndSaveRediscovery(
     throw new Error("No saved items found to discover context for.");
   }
 
-  // 3. Search GNews for each cluster topic (at most 4 queries)
+  // 3. Search GNews for cluster topics (at most 4 queries, paced to respect 1 req/sec rate limit)
   interface RawGNewsArticle {
     title: string;
     description: string;
@@ -241,33 +241,80 @@ export async function generateAndSaveRediscovery(
   }
 
   const allArticles: RawGNewsArticle[] = [];
+  const gnewsErrors: string[] = [];
 
+  // Extract high-signal, clean search terms from clusters
+  const queryTerms: string[] = [];
   for (const cluster of clusters) {
-    // Generate clean query terms: cluster title without punctuation
-    const query = cluster.title
+    // 1. Prefer the primary cluster tag if available
+    const primaryTag = cluster.tags?.[0]?.replace(/[^a-zA-Z0-9\s]/g, " ").trim();
+    if (primaryTag && !queryTerms.includes(primaryTag)) {
+      queryTerms.push(primaryTag);
+    }
+    // 2. Also extract the primary topic phrase from cluster title (1-2 words)
+    const titleClean = cluster.title
       .replace(/[^a-zA-Z0-9\s]/g, " ")
       .trim()
-      .split(/\s+/)
-      .slice(0, 3)
-      .join(" ");
+      .split(/\s+/);
+    const shortTitle = titleClean.slice(0, 2).join(" ");
+    if (shortTitle && !queryTerms.includes(shortTitle) && queryTerms.length < 4) {
+      queryTerms.push(shortTitle);
+    }
+    if (queryTerms.length >= 4) break;
+  }
 
-    if (!query) continue;
+  if (queryTerms.length === 0) {
+    queryTerms.push("technology");
+  }
+
+  for (let i = 0; i < queryTerms.length; i++) {
+    const query = queryTerms[i];
+    // Respect GNews 1 req/sec rate limit on free tier: wait 1100ms before subsequent requests
+    if (i > 0) {
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+    }
+
+    const maskedUrl = `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=en&max=5&apikey=[REDACTED]`;
+    const gnewsUrl = `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=en&max=5&apikey=${gnewsApiKey}`;
+    const startTime = Date.now();
 
     try {
-      const gnewsUrl = `https://gnews.io/api/v4/search?q=${encodeURIComponent(query)}&lang=en&max=5&apikey=${gnewsApiKey}`;
-      const res = await fetch(gnewsUrl);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const res = await fetch(gnewsUrl, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      const durationMs = Date.now() - startTime;
+      console.log(`[GNEWS QUERY] URL: ${maskedUrl} | Query: "${query}" | Status: ${res.status} (${durationMs}ms)`);
+
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.articles)) {
+          console.log(`[GNEWS QUERY] Returned ${data.articles.length} articles for query "${query}"`);
           allArticles.push(...data.articles);
+        }
+      } else {
+        const errorText = await res.text();
+        console.error(`[GNEWS QUERY ERROR] Status ${res.status}: ${errorText.slice(0, 150)}`);
+        if (res.status === 429) {
+          gnewsErrors.push("GNews API rate limit reached (1 req/sec). Please wait a moment before checking again.");
+        } else if (res.status === 403) {
+          gnewsErrors.push("GNews API quota exhausted or invalid key.");
+        } else {
+          gnewsErrors.push(`GNews API error (${res.status}).`);
         }
       }
     } catch (err) {
-      console.error(`GNews query failed for cluster '${cluster.title}':`, err);
+      const message = err instanceof Error ? err.message : String(err);
+      console.error(`[GNEWS QUERY FAILED] for "${query}":`, message);
+      gnewsErrors.push(`GNews connection error: ${message}`);
     }
   }
 
   if (allArticles.length === 0) {
+    if (gnewsErrors.length > 0) {
+      throw new Error(`${gnewsErrors[0]} Previous results preserved.`);
+    }
     throw new Error("Could not retrieve current news articles from GNews. Previous results preserved.");
   }
 
