@@ -114,6 +114,19 @@ export async function getSavedItemById(
 }
 
 /**
+ * Validates that an external URL uses http: or https: to prevent javascript: or data: URL injection.
+ */
+export function isSafeWebUrl(url: string | undefined): boolean {
+  if (!url || !url.trim()) return true;
+  try {
+    const parsed = new URL(url.trim());
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Create a new saved item.
  * The ownership userId is strictly injected from verified auth, ignoring any client data.
  */
@@ -123,6 +136,13 @@ export async function createSavedItem(
 ): Promise<ISavedItem> {
   if (!userId) {
     throw new Error("userId is required for user isolation");
+  }
+
+  if (input.source?.url && !isSafeWebUrl(input.source.url)) {
+    throw new Error("Invalid URL protocol. Only http: and https: protocols are permitted.");
+  }
+  if (input.canonicalUrl && !isSafeWebUrl(input.canonicalUrl)) {
+    throw new Error("Invalid canonical URL protocol. Only http: and https: protocols are permitted.");
   }
 
   await connectToDatabase();
@@ -155,6 +175,13 @@ export async function updateSavedItem(
 ): Promise<ISavedItem | null> {
   if (!userId || !itemId || !isValidObjectId(itemId)) {
     return null;
+  }
+
+  if (input.source?.url && !isSafeWebUrl(input.source.url)) {
+    throw new Error("Invalid URL protocol. Only http: and https: protocols are permitted.");
+  }
+  if (input.canonicalUrl && !isSafeWebUrl(input.canonicalUrl)) {
+    throw new Error("Invalid canonical URL protocol. Only http: and https: protocols are permitted.");
   }
 
   await connectToDatabase();

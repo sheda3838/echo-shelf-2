@@ -215,14 +215,20 @@ export function RediscoverClient({
 
                   {/* Article Headline */}
                   <div>
-                    <a
-                      href={res.article.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-base font-bold text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400 hover:underline leading-snug line-clamp-2 block"
-                    >
-                      {res.article.title}
-                    </a>
+                    {/^https?:\/\//i.test(res.article.url) ? (
+                      <a
+                        href={res.article.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-base font-bold text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400 hover:underline leading-snug line-clamp-2 block"
+                      >
+                        {res.article.title}
+                      </a>
+                    ) : (
+                      <span className="text-base font-bold text-zinc-900 dark:text-zinc-100 leading-snug line-clamp-2 block">
+                        {res.article.title}
+                      </span>
+                    )}
                     {res.article.snippet && (
                       <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 mt-1.5 leading-relaxed">
                         {res.article.snippet}

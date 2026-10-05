@@ -4,14 +4,24 @@ import { isPrivateOrInternalHost } from "../src/lib/extractors/url";
 import { parseRepositoryUrl } from "../src/lib/extractors/repository";
 import { extractYouTubeVideoId } from "../src/lib/extractors/youtube";
 
-test("SSRF Protection: rejects private and local addresses", () => {
+test("SSRF Protection: rejects private and local addresses including subnets and mapped IPv6", () => {
   assert.equal(isPrivateOrInternalHost("localhost"), true);
   assert.equal(isPrivateOrInternalHost("127.0.0.1"), true);
+  assert.equal(isPrivateOrInternalHost("127.0.0.2"), true);
+  assert.equal(isPrivateOrInternalHost("127.255.255.254"), true);
+  assert.equal(isPrivateOrInternalHost("0.0.0.0"), true);
+  assert.equal(isPrivateOrInternalHost("0"), true);
   assert.equal(isPrivateOrInternalHost("10.0.0.1"), true);
+  assert.equal(isPrivateOrInternalHost("10.255.255.255"), true);
   assert.equal(isPrivateOrInternalHost("172.16.0.1"), true);
+  assert.equal(isPrivateOrInternalHost("172.31.255.255"), true);
   assert.equal(isPrivateOrInternalHost("192.168.1.1"), true);
   assert.equal(isPrivateOrInternalHost("169.254.169.254"), true); // AWS/cloud metadata
+  assert.equal(isPrivateOrInternalHost("100.64.0.1"), true); // Carrier-Grade NAT
   assert.equal(isPrivateOrInternalHost("::1"), true);
+  assert.equal(isPrivateOrInternalHost("::ffff:127.0.0.1"), true); // IPv4-mapped IPv6
+  assert.equal(isPrivateOrInternalHost("::ffff:169.254.169.254"), true);
+  assert.equal(isPrivateOrInternalHost("2130706433"), true); // integer decimal IP
   assert.equal(isPrivateOrInternalHost("google.com"), false);
   assert.equal(isPrivateOrInternalHost("github.com"), false);
   assert.equal(isPrivateOrInternalHost("dev.to"), false);
@@ -107,5 +117,36 @@ test("Other Extractor: combines multiple source inputs cleanly into normalized e
   assert.ok(result.text.includes("[URL Source:"));
   assert.ok(result.contentFingerprint);
   assert.ok(result.text.length > 50);
+});
+
+test("URL Protocol Safety: isSafeWebUrl strictly permits only http and https", async () => {
+  const { isSafeWebUrl } = await import("../src/lib/services/saved-items.service");
+
+  assert.equal(isSafeWebUrl("https://example.com"), true);
+  assert.equal(isSafeWebUrl("http://example.com/path?query=1"), true);
+  assert.equal(isSafeWebUrl("javascript:alert(1)"), false);
+  assert.equal(isSafeWebUrl("javascript:void(0)"), false);
+  assert.equal(isSafeWebUrl("data:text/html,<script>alert(1)</script>"), false);
+  assert.equal(isSafeWebUrl("vbscript:msgbox(1)"), false);
+  assert.equal(isSafeWebUrl("file:///etc/passwd"), false);
+  assert.equal(isSafeWebUrl(undefined), true);
+  assert.equal(isSafeWebUrl(""), true);
+});
+
+test("SSRF URL Normalization: validateAndNormalizeUrl blocks internal and private targets", async () => {
+  const { validateAndNormalizeUrl } = await import("../src/lib/extractors/url");
+
+  assert.throws(() => validateAndNormalizeUrl("http://localhost:3000/api"));
+  assert.throws(() => validateAndNormalizeUrl("http://127.0.0.1:8080"));
+  assert.throws(() => validateAndNormalizeUrl("http://127.0.0.2:9999"));
+  assert.throws(() => validateAndNormalizeUrl("http://169.254.169.254/latest/meta-data"));
+  assert.throws(() => validateAndNormalizeUrl("http://10.0.0.5:80"));
+  assert.throws(() => validateAndNormalizeUrl("http://192.168.1.1"));
+  assert.throws(() => validateAndNormalizeUrl("ftp://example.com"));
+  assert.throws(() => validateAndNormalizeUrl("not-a-valid-url"));
+
+  const valid = validateAndNormalizeUrl("https://github.com/facebook/react");
+  assert.equal(valid.hostname, "github.com");
+  assert.equal(valid.protocol, "https:");
 });
 

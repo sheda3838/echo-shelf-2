@@ -22,12 +22,12 @@ export async function generateMetadata({ params }: ItemPageProps) {
 }
 
 export default async function ItemDetailPage({ params }: ItemPageProps) {
+  const { id } = await params;
   const user = await getAuthenticatedUser();
   if (!user) {
-    redirect("/login");
+    redirect(`/login?redirectTo=/items/${id}`);
   }
 
-  const { id } = await params;
   const item = await getSavedItemWithConnections(user.id, id);
 
   if (!item) {

@@ -365,4 +365,111 @@ All automated test suites executed cleanly:
   - `npm run lint`: 0 lint errors, 0 warnings
   - `npm run build`: Production build succeeded (all routes compiled cleanly)
 
+---
+
+## Phase 3: Adversarial QA, Security Audit & Production Hardening
+
+### 1. Audit Overview & Objectives
+Phase 3 subjected Echo Shelf 2.0 to aggressive adversarial testing, security auditing, live integration verification, and production hardening. The objective was to verify the complete intelligence lifecycle (Capture → Extract → Gemma → Duplicate Prevention → Potential Connections → Library → Smart Connections → Knowledge Clusters → GNews → Rediscovery) under both happy paths and failure/adversarial states.
+
+---
+
+### 2. Security Vulnerabilities Discovered & Remediated
+
+#### A. SSRF Protection & HTTP Redirect Bypass Defense
+- **Vulnerability**: 
+  1. `isPrivateOrInternalHost` checked only explicit IP strings `127.0.0.1` and `0.0.0.0`, leaving entire loopback subnets (`127.0.0.0/8`), current network subnets (`0.0.0.0/8`), Carrier-Grade NAT (`100.64.0.0/10`), multicast ranges (`224.0.0.0/4`), raw decimal integer IPs (`2130706433`), and IPv4-mapped IPv6 addresses (`::ffff:127.0.0.1`, `::ffff:169.254.169.254`) unchecked.
+  2. Standard `fetch` followed HTTP 301/302/307 redirects automatically. A public URL redirecting to `169.254.169.254` (cloud instance metadata) or `127.0.0.1:3000` bypassed initial hostname validation.
+  3. Hostnames resolving via DNS to internal/loopback IPs (e.g. `127.0.0.1.nip.io`) bypassed hostname string checks.
+- **Fix**:
+  1. Hardened `isPrivateOrInternalHost` in `src/lib/extractors/url.ts` to block all RFC 1918 private subnets, `127.0.0.0/8`, `0.0.0.0/8`, `100.64.0.0/10` CGNAT, `169.254.0.0/16` link-local metadata, multicast (`224.0.0.0/4`), IPv4-mapped IPv6 (`::ffff:...`), and raw integer IP representations.
+  2. Added `verifyResolvedHost` using `dns.lookup` to verify that the resolved IP address of any domain is public and non-internal.
+  3. Implemented `safeFetchHtml` with manual redirect handling (`redirect: "manual"`). Each redirect location header is validated, parsed, checked for protocol (`http`/`https` only), and inspected for private/internal target addresses before continuing (max 5 hops).
+
+#### B. Gemma MAX_TOKENS Detection & Request Timeout
+- **Vulnerability**:
+  1. `callGemma` in `src/lib/ai/gemma.ts` did not inspect `candidate.finishReason`. When the model exhausted output tokens during reasoning, `cleanAndParseJson` returned empty fallbacks, silently hiding truncation errors.
+  2. `fetch` calls to the Google Gemini API had no timeout, risking hung serverless threads on network stalls.
+- **Fix**:
+  1. Explicitly check `candidate.finishReason === "MAX_TOKENS"`. Throws a descriptive error: `Gemma token generation limit reached (finishReason: MAX_TOKENS). The model output was truncated during reasoning or generation. Please try with fewer items or shorter input.`
+  2. Configured `AbortController` timeout (`60000ms`) on `callGemma` with an informative error message if the external API does not respond within 60s.
+
+#### C. Prompt Injection Data Boundaries
+- **Vulnerability**: Extracted external web pages, documents, and notes were interpolated directly into LLM prompts, making them susceptible to instruction override attacks (e.g. "Ignore previous instructions", "Output secrets").
+- **Fix**:
+  1. Enclosed all untrusted user content within explicit boundary tags: `<untrusted_content>...</untrusted_content>` and `<untrusted_data>...</untrusted_data>`.
+  2. Injected strict system instructions directing Gemma to treat everything within these tags strictly as passive data, explicitly commanding it to ignore any prompt overrides, system commands, or credential exfiltration attempts.
+  3. Runtime schema parsers strictly validate all outputs against typed schemas, discarding unexpected keys or hallucinated IDs.
+
+#### D. URL Protocol Safety & XSS Defense
+- **Vulnerability**: External URLs in `source.url` and `canonicalUrl` were not protocol-validated at the service layer, opening potential vectors for `javascript:` or `data:text/html` URI execution when clicked in the UI.
+- **Fix**:
+  1. Created `isSafeWebUrl` in `src/lib/services/saved-items.service.ts` to enforce that external URLs strictly use `http:` or `https:`.
+  2. `createSavedItem` and `updateSavedItem` reject non-http(s) protocols with a `400 Bad Request`.
+  3. Updated `ItemDetailClient.tsx` and `RediscoverClient.tsx` so external links only render active `<a>` tags if the URL strictly matches `/^https?:\/\//i`.
+
+#### E. Edge / Middleware Route Protection Consistency
+- **Vulnerability**: `src/lib/supabase/middleware.ts` only matched `/library` in `isProtectedRoute`. Unauthenticated requests to `/add`, `/clusters`, `/rediscover`, and `/items/[id]` were not intercepted at the middleware boundary, relying entirely on server-component redirects.
+- **Fix**: Expanded `isProtectedRoute` in middleware to cover `/library`, `/add`, `/clusters`, `/rediscover`, and `/items`. Added `redirectTo` preservation to `/items/[id]/page.tsx`.
+
+#### F. MongoDB BSON Document Bloat Prevention
+- **Vulnerability**: Uploaded images in `extractImage` returned full base64 data URLs as `previewImageUrl`, which were subsequently persisted into MongoDB `metadata.imageUrl`. For large uploads (up to 10MB), this risked exceeding MongoDB's 16MB BSON document limit and caused massive latency on `/library` queries.
+- **Fix**: Capped `previewImageUrl` in `src/lib/extractors/image.ts` to small thumbnail scales (`<= 150KB`). Full image base64 data remains in ephemeral memory (`sourceMetadata.imageBase64`) for Gemma multimodal analysis and browser blob URLs for client preview, preventing multi-megabyte document bloat in MongoDB.
+
+---
+
+### 3. Dependency Security Audit (`npm audit`)
+- Ran `npm audit` and analyzed reported advisories:
+  1. `officeparser@7.8.0` subdependency `pdfjs-dist@6.1.200` was flagged for GHSA-hq66-cqwq-w95j (PDF.js script execution). Applied npm override `"overrides": { "officeparser": { "pdfjs-dist": "^6.2.108" } }`, upgrading it to `pdfjs-dist@6.4.299` and remediating the vulnerability.
+  2. `braces` in `eslint-config-next`: Verified this dependency lives exclusively in the dev-dependency tree for local linting (`eslint .`) and is never included in the production build or serverless runtime. Automated `npm audit fix --force` was intentionally rejected to avoid breaking Next.js 16.
+
+---
+
+### 4. Live External Integration Testing Matrix
+Executed real live integration tests against live production endpoints via `scripts/test_live_integrations.ts`:
+1. **YouTube Data API v3**: Successfully extracted live metadata, title, channel, and thumbnail from a real YouTube video via `YOUTUBE_API_KEY`.
+2. **GitHub REST API**: Successfully extracted live repository metadata and star count (250,885+ stars) from `facebook/react`.
+3. **Web URL / Readability**: Successfully parsed HTML and extracted clean text content from external web pages.
+4. **Gemma Smart Capture**: Verified live inference against Google Gemini API (`models/gemma-4-26b-a4b-it`), generating structured titles, summaries, and tags.
+5. **Gemma Smart Connections**: Verified live semantic relationship analysis: successfully linked Kafka and RabbitMQ as `alternative-approach` (strength: `strong`), while rejecting unrelated baking items.
+6. **Gemma Knowledge Clusters**: Verified live thematic clustering: synthesized cohesive multi-item clusters ("Cognitive Learning and Creativity", "Strategic Thinking Frameworks") with 0 singletons and strictly valid IDs.
+7. **GNews API v4**: Successfully queried live articles using `GNEWS_API_KEY` (HTTP 200, recent headlines retrieved).
+
+---
+
+### 5. Browser QA Verification
+Executed live browser tests via automated browser subagent:
+- **Landing Page (`/`)**: Loaded cleanly (HTTP 200), zero runtime exceptions, zero hydration errors.
+- **Login Flow (`/login`)**:
+  - Empty form validation confirmed.
+  - Invalid credentials error message cleanly displayed inline without page crashes.
+  - "Sign in with Google" button successfully initiated Supabase OAuth handshake to Google accounts with correct client ID, Supabase callback URL, and local redirect URL.
+- **Sign-Up Flow (`/signup`)**:
+  - Mismatched passwords (`Secret123!` vs `Different123!`) were blocked client-side with a clear "Passwords do not match" notice; 0 network requests sent to Supabase.
+- **Protected Routes**:
+  - Direct unauthenticated access to `/library`, `/add`, `/clusters`, `/rediscover`, and `/items/[id]` cleanly redirected to `/login?redirectTo=...`.
+- **Custom 404 Page**:
+  - Accessed `/non-existent-page-test-404`: rendered the clean Next.js 404 page with 0 errors.
+
+---
+
+### 6. Automated Regression & Adversarial Test Suites
+Added new specialized test suites and executed all quality gates:
+1. `npm run test:auth` (11 tests passed)
+2. `npm run test:isolation` (27 tests passed)
+3. `npm run test:duplicates` (5 tests passed)
+4. `npm run test:connections` (4 tests passed)
+5. `npm run test:clusters` (6 tests passed)
+6. `npm run test:rediscovery` (7 tests passed)
+7. `npm run test:capture` (9 tests passed — includes extended SSRF subnets & URL protocol safety)
+8. `npm run test:security` (6 tests passed — includes cross-tenant ID substitution masking, JS URI rejection, mass assignment immutability, SSRF defense, prompt injection fallback, JSON code fence parsing)
+9. `npm run test:document` (4 tests passed — includes markdown parsing, empty buffer rejection, corrupt text rejection, 25MB file size limit)
+10. `npm run test:image` (4 tests passed — includes MIME validation, unsupported format rejection, empty buffer rejection, 10MB limit)
+
+**Total Tests**: 83 passed, 0 failed.
+**TypeScript**: `npx tsc --noEmit` passed with 0 errors.
+**Linter**: `npm run lint` passed with 0 errors and 0 warnings.
+**Production Build**: `npm run build` compiled all 16 routes cleanly in 7.8s.
+
+
 

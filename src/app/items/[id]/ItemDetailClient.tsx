@@ -231,22 +231,30 @@ export function ItemDetailClient({ item: initialItem, userEmail }: ItemDetailCli
 
               {item.source.type === "url" && item.source.url && (
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <a
-                    href={item.source.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline truncate"
-                  >
-                    {item.source.url}
-                  </a>
-                  <a
-                    href={item.source.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-semibold hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shrink-0"
-                  >
-                    Open Original &rarr;
-                  </a>
+                  {/^https?:\/\//i.test(item.source.url) ? (
+                    <>
+                      <a
+                        href={item.source.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline truncate"
+                      >
+                        {item.source.url}
+                      </a>
+                      <a
+                        href={item.source.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-semibold hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shrink-0"
+                      >
+                        Open Original &rarr;
+                      </a>
+                    </>
+                  ) : (
+                    <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400 truncate">
+                      {item.source.url}
+                    </span>
+                  )}
                 </div>
               )}
 

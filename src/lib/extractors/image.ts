@@ -49,11 +49,14 @@ export async function extractImage(input: ImageInput): Promise<NormalizedExtract
     .replace(/\b\w/g, (c) => c.toUpperCase())
     .trim();
 
+  // Cap embedded data URL to thumbnail scale (<150KB) to prevent MongoDB BSON document bloat
+  const previewImageUrl = buffer.length <= 150 * 1024 ? dataUrl : undefined;
+
   return {
     contentType: "Image",
     titleHint: cleanTitle,
     text: `Image file: ${fileName} (${(buffer.length / 1024).toFixed(1)} KB)`,
-    previewImageUrl: dataUrl,
+    previewImageUrl,
     contentFingerprint: fingerprint,
     sourceMetadata: {
       fileName,
