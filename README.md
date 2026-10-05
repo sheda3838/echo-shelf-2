@@ -4,6 +4,9 @@
 
 Echo Shelf 2.0 reimagines personal knowledge management around a three-stage intelligence loop: **Capture → Connect → Resurface**. Rather than letting saved bookmarks, videos, and documents gather digital dust, Echo Shelf automatically extracts structured context, maps conceptual relationships across your vault, clusters related assets into pillars, and continuously monitors live world news to resurface forgotten insights when they become relevant again.
 
+- **Live Demo**: [https://echo-shelf-2.vercel.app/](https://echo-shelf-2.vercel.app/)
+- **GitHub Repository**: [https://github.com/sheda3838/echo-shelf-2](https://github.com/sheda3838/echo-shelf-2)
+
 ---
 
 ## The Problem
@@ -292,7 +295,12 @@ npm run build              # Production build compilation check
 
 ## Project Status
 
-Echo Shelf 2.0 is **feature-complete** and has passed all pre-deployment quality gates, browser end-to-end verifications, and adversarial security audits. The application is currently staged for immediate production deployment.
+Echo Shelf 2.0 is **feature-complete**, fully verified, and actively deployed in production on Vercel:
+
+- **Live Application**: [https://echo-shelf-2.vercel.app/](https://echo-shelf-2.vercel.app/)
+- **GitHub Repository**: [https://github.com/sheda3838/echo-shelf-2](https://github.com/sheda3838/echo-shelf-2)
+
+All pre-deployment quality gates, browser end-to-end verifications, and adversarial security audits have passed with zero errors.
 
 For a detailed chronological account of design decisions, obstacles encountered, and engineering solutions, please refer to the [Build Log](BUILD_LOG.md).
 
@@ -306,7 +314,7 @@ Echo Shelf 2.0 was developed as a submission for the **Hacktoberfest 2026 Weeken
 
 ## Screenshots & Demo
 
-> Production screenshots and demo walk-through recordings will be updated upon final deployment.
+- **Live Application**: [https://echo-shelf-2.vercel.app/](https://echo-shelf-2.vercel.app/)
 
 | Screen | Description |
 | :--- | :--- |

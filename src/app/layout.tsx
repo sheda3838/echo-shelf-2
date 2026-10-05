@@ -8,9 +8,13 @@ export const metadata: Metadata = {
   },
   description: "Capture, connect, and resurface personal knowledge with AI-powered intelligence.",
   icons: {
-    icon: "/favicon.png",
+    icon: [
+      { url: "/favicon.png", type: "image/png" },
+    ],
     shortcut: "/favicon.png",
-    apple: "/favicon.png",
+    apple: [
+      { url: "/favicon.png", type: "image/png" },
+    ],
   },
 };
 
