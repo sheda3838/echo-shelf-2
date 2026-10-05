@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { signout } from "@/app/auth/actions";
 
@@ -19,30 +20,47 @@ export function Navigation({ userEmail, userId }: NavigationProps) {
   ];
 
   return (
-    <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/90 backdrop-blur sticky top-0 z-40">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+    <header className="border-b border-[#16382E] bg-[#040D0A]/90 backdrop-blur-md sticky top-0 z-40">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand & Nav Links */}
-        <div className="flex items-center gap-6">
-          <Link href="/library" className="flex items-center gap-2">
-            <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-zinc-900 to-zinc-600 dark:from-zinc-100 dark:to-zinc-400 bg-clip-text text-transparent">
-              Echo Shelf
-            </span>
-            <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-              2.0
-            </span>
+        <div className="flex items-center gap-6 sm:gap-8">
+          <Link
+            href="/library"
+            className="flex items-center gap-2.5 group focus-visible:outline-2 focus-visible:outline-[#34D399] rounded-lg p-0.5"
+          >
+            <div className="relative w-8 h-8 rounded-lg overflow-hidden flex-shrink-0 bg-[#081712] border border-[#16382E] group-hover:border-[#34D399]/60 transition-colors">
+              <Image
+                src="/logo.png"
+                alt="Echo Shelf Logo"
+                width={32}
+                height={32}
+                className="w-full h-full object-contain"
+                priority
+              />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="font-extrabold text-base sm:text-lg tracking-tight text-[#F0FDF4] group-hover:text-[#34D399] transition-colors">
+                Echo Shelf
+              </span>
+              <span className="text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded bg-[#0E241D] text-[#34D399] border border-[#16382E]">
+                2.0
+              </span>
+            </div>
           </Link>
 
-          <nav className="hidden sm:flex items-center gap-1">
+          <nav className="flex items-center gap-1">
             {navItems.map((item) => {
-              const isActive = pathname === item.href || (item.href !== "/library" && pathname.startsWith(item.href));
+              const isActive =
+                pathname === item.href ||
+                (item.href !== "/library" && pathname.startsWith(item.href));
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                     isActive
-                      ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 font-semibold"
-                      : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                      ? "bg-[#0E241D] text-[#34D399] border border-[#16382E] font-semibold shadow-[0_0_12px_rgba(16,185,129,0.12)]"
+                      : "text-[#9FE1CB]/80 hover:text-[#F0FDF4] hover:bg-[#081712] border border-transparent"
                   }`}
                 >
                   {item.label}
@@ -56,19 +74,19 @@ export function Navigation({ userEmail, userId }: NavigationProps) {
         <div className="flex items-center gap-3">
           <Link
             href="/add"
-            className="flex items-center gap-1.5 py-1.5 px-3 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-semibold hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-sm"
+            className="flex items-center gap-1.5 py-1.5 px-3.5 rounded-lg bg-[#10B981] hover:bg-[#34D399] text-[#040D0A] text-xs font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.25)] hover:shadow-[0_0_20px_rgba(52,211,153,0.4)] active:scale-[0.98]"
           >
-            <span>+</span>
+            <span className="text-sm leading-none">+</span>
             <span>Add Item</span>
           </Link>
 
           {userEmail && (
             <div className="hidden md:flex flex-col text-right">
-              <span className="text-xs font-medium text-zinc-900 dark:text-zinc-100 truncate max-w-[140px]">
+              <span className="text-xs font-medium text-[#F0FDF4] truncate max-w-[150px]">
                 {userEmail}
               </span>
               {userId && (
-                <span className="text-[10px] font-mono text-zinc-400">
+                <span className="text-[10px] font-mono text-[#5E8275]">
                   {userId.slice(0, 8)}...
                 </span>
               )}
@@ -78,7 +96,7 @@ export function Navigation({ userEmail, userId }: NavigationProps) {
           <form action={signout}>
             <button
               type="submit"
-              className="py-1.5 px-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+              className="py-1.5 px-2.5 rounded-lg border border-[#16382E] bg-[#081712] text-xs font-medium text-[#9FE1CB] hover:bg-[#0E241D] hover:text-[#F0FDF4] hover:border-[#235343] transition-colors"
             >
               Sign Out
             </button>

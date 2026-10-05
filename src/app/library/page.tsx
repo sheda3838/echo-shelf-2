@@ -37,11 +37,11 @@ export default async function LibraryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
+    <div className="min-h-screen bg-[#040D0A] text-[#F0FDF4] flex flex-col">
       <Navigation userEmail={user.email} userId={user.id} />
 
       {/* Main Content Area */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <LibraryClient initialItems={initialItems} />
       </main>
     </div>

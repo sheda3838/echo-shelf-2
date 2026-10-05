@@ -1,28 +1,98 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Dark-first brand palette derived directly from public/logo.png */
+  --bg-app: #040D0A;
+  --bg-surface: #081712;
+  --bg-surface-elevated: #0E241D;
+  --bg-surface-hover: #132F26;
+  
+  --border-subtle: #16382E;
+  --border-strong: #235343;
+  --border-focus: #34D399;
+
+  --text-primary: #F0FDF4;
+  --text-secondary: #9FE1CB;
+  --text-muted: #5E8275;
+
+  --brand-primary: #10B981;
+  --brand-bright: #34D399;
+  --brand-mint: #6EE7B7;
+  --brand-dark: #064E3B;
+
+  --status-success: #10B981;
+  --status-success-bg: rgba(16, 185, 129, 0.12);
+  --status-warning: #F59E0B;
+  --status-warning-bg: rgba(245, 158, 11, 0.12);
+  --status-error: #EF4444;
+  --status-error-bg: rgba(239, 68, 68, 0.12);
+  --status-info: #06B6D4;
+  --status-info-bg: rgba(6, 182, 212, 0.12);
+
+  --focus-ring: rgba(52, 211, 153, 0.45);
+
   --font-geist-sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-geist-mono: "Geist Mono", ui-monospace, SFMono-Regular, Roboto Mono, Menlo, monospace;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-bg-app: var(--bg-app);
+  --color-surface: var(--bg-surface);
+  --color-surface-elevated: var(--bg-surface-elevated);
+  --color-surface-hover: var(--bg-surface-hover);
+
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-muted: var(--text-muted);
+
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-bright: var(--brand-bright);
+  --color-brand-mint: var(--brand-mint);
+  --color-brand-dark: var(--brand-dark);
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Dark-first application baseline */
+body {
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  selection-background-color: #10B981;
+  selection-color: #040D0A;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+::selection {
+  background-color: rgba(52, 211, 153, 0.35);
+  color: #F0FDF4;
+}
+
+/* Custom scrollbars in deep emerald */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #040D0A;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #16382E;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #235343;
+}
+
+/* Focus visibility for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--brand-bright);
+  outline-offset: 2px;
 }

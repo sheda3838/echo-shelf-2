@@ -15,9 +15,9 @@ export default async function AddPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
+    <div className="min-h-screen bg-[#040D0A] text-[#F0FDF4] flex flex-col">
       <Navigation userEmail={user.email} userId={user.id} />
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-8">
         <AddClient />
       </main>
     </div>

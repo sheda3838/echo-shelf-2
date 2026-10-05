@@ -446,18 +446,18 @@ export function AddClient() {
   return (
     <div className="space-y-8">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+      <div className="pb-2 border-b border-[#16382E]">
+        <h1 className="text-2xl font-bold tracking-tight text-[#F0FDF4]">
           Save New Knowledge Asset
         </h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+        <p className="text-xs sm:text-sm text-[#9FE1CB]/70 mt-1">
           Capture content from URLs, repositories, videos, documents, or notes with AI enrichment.
         </p>
       </div>
 
       {/* 1. What are you saving? */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm">
-        <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-3">
+      <div className="bg-[#081712] border border-[#16382E] rounded-2xl p-5 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+        <label className="block text-[11px] font-bold uppercase tracking-wider text-[#9FE1CB] mb-3">
           1. What are you saving?
         </label>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -470,17 +470,15 @@ export function AddClient() {
                 onClick={() => handleTypeSelect(opt.type)}
                 className={`flex flex-col items-start p-3.5 rounded-xl border text-left transition-all ${
                   isSelected
-                    ? "border-zinc-900 dark:border-zinc-100 bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-sm"
-                    : "border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/40 text-zinc-800 dark:text-zinc-200 hover:border-zinc-300 dark:hover:border-zinc-700"
+                    ? "border-[#10B981] bg-[#0E241D] text-[#F0FDF4] shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+                    : "border-[#16382E] bg-[#040D0A]/70 text-[#9FE1CB] hover:border-[#235343] hover:bg-[#081712]"
                 }`}
               >
                 <span className="text-xl mb-1.5">{opt.icon}</span>
-                <span className="text-sm font-semibold">{opt.label}</span>
-                <span
-                  className={`text-[11px] mt-0.5 line-clamp-1 ${
-                    isSelected ? "text-zinc-300 dark:text-zinc-600" : "text-zinc-400"
-                  }`}
-                >
+                <span className={`text-xs font-bold ${isSelected ? "text-[#34D399]" : "text-[#F0FDF4]"}`}>
+                  {opt.label}
+                </span>
+                <span className="text-[10px] mt-0.5 text-[#5E8275] line-clamp-1">
                   {opt.description}
                 </span>
               </button>
@@ -490,14 +488,14 @@ export function AddClient() {
       </div>
 
       {/* 2. Source Input */}
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-5">
-        <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+      <div className="bg-[#081712] border border-[#16382E] rounded-2xl p-5 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.3)] space-y-5">
+        <label className="block text-[11px] font-bold uppercase tracking-wider text-[#9FE1CB]">
           2. Provide Source Content
         </label>
 
         {isUrlBased && (
           <div>
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+            <label className="block text-xs font-semibold text-[#F0FDF4] mb-1.5">
               {selectedType === "Video"
                 ? "YouTube URL (Video, Short, or Share link)"
                 : selectedType === "Repository"
@@ -519,16 +517,16 @@ export function AddClient() {
                   ? "https://github.com/owner/repo"
                   : "https://example.com/article"
               }
-              className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#16382E] bg-[#040D0A] text-[#F0FDF4] placeholder-[#5E8275] text-sm focus:outline-none focus:border-[#34D399] focus:ring-1 focus:ring-[#34D399] transition-colors"
             />
           </div>
         )}
 
         {isFileBased && (
           <div>
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+            <label className="block text-xs font-semibold text-[#F0FDF4] mb-1.5">
               {selectedType === "Document"
-                ? "Upload Document (PDF, DOCX, PPTX, XLSX)"
+                ? "Upload Document (PDF, DOCX, PPTX, XLSX, TXT, MD)"
                 : "Upload Image (PNG, JPG, WEBP)"}
             </label>
             <input
@@ -539,10 +537,10 @@ export function AddClient() {
                   : "image/png,image/jpeg,image/webp"
               }
               onChange={handleFileChange}
-              className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-sm file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-zinc-100 dark:file:bg-zinc-700 file:text-zinc-700 dark:file:text-zinc-200 hover:file:bg-zinc-200"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#16382E] bg-[#040D0A] text-[#F0FDF4] text-xs file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-[#0E241D] file:text-[#34D399] hover:file:bg-[#16382E] cursor-pointer"
             />
             {imagePreviewUrl && (
-              <div className="mt-3 relative aspect-video w-48 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800">
+              <div className="mt-3 relative aspect-video w-48 rounded-xl overflow-hidden border border-[#16382E]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={imagePreviewUrl}
@@ -556,7 +554,7 @@ export function AddClient() {
 
         {isNoteBased && (
           <div>
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+            <label className="block text-xs font-semibold text-[#F0FDF4] mb-1.5">
               Note / Reference Text
             </label>
             <textarea
@@ -568,7 +566,7 @@ export function AddClient() {
                 setDuplicateCheck(null);
               }}
               placeholder="Paste notes, excerpts, code snippets, or thoughts..."
-              className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#16382E] bg-[#040D0A] text-[#F0FDF4] placeholder-[#5E8275] text-sm focus:outline-none focus:border-[#34D399] focus:ring-1 focus:ring-[#34D399] transition-colors"
             />
           </div>
         )}
@@ -576,13 +574,13 @@ export function AddClient() {
         {/* Refined Other: Multi-Source Inputs */}
         {isOtherBased && (
           <div className="space-y-4">
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-xs text-[#9FE1CB]/70">
               Combine one or more sources (text, URLs, documents, images) into a single unified knowledge asset. At least one input is required.
             </p>
 
             {/* A. Text / Notes */}
-            <div className="space-y-1">
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-[#F0FDF4]">
                 📝 Notes & Thoughts
               </label>
               <textarea
@@ -594,13 +592,13 @@ export function AddClient() {
                   setDuplicateCheck(null);
                 }}
                 placeholder="Add context notes, observations, or key takeaways..."
-                className="w-full px-3.5 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 text-xs focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+                className="w-full px-3.5 py-2 rounded-xl border border-[#16382E] bg-[#040D0A] text-[#F0FDF4] placeholder-[#5E8275] text-xs focus:outline-none focus:border-[#34D399] focus:ring-1 focus:ring-[#34D399] transition-colors"
               />
             </div>
 
             {/* B. URLs */}
             <div className="space-y-2">
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <label className="block text-xs font-semibold text-[#F0FDF4]">
                 🔗 Reference URLs (Articles, YouTube, Repositories, Links)
               </label>
               <div className="flex gap-2">
@@ -615,13 +613,13 @@ export function AddClient() {
                     }
                   }}
                   placeholder="https://..."
-                  className="flex-1 px-3.5 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 text-xs focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+                  className="flex-1 px-3.5 py-2 rounded-xl border border-[#16382E] bg-[#040D0A] text-[#F0FDF4] placeholder-[#5E8275] text-xs focus:outline-none focus:border-[#34D399] focus:ring-1 focus:ring-[#34D399] transition-colors"
                 />
                 <button
                   type="button"
                   onClick={handleAddOtherUrl}
                   disabled={!newUrlInput.trim()}
-                  className="px-3.5 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-semibold transition-colors disabled:opacity-50"
+                  className="px-3.5 py-2 rounded-xl bg-[#0E241D] text-[#34D399] hover:bg-[#16382E] border border-[#16382E] text-xs font-semibold transition-colors disabled:opacity-50"
                 >
                   Add URL
                 </button>
@@ -632,13 +630,13 @@ export function AddClient() {
                   {otherUrls.map((urlItem, idx) => (
                     <span
                       key={idx}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs max-w-full"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#0E241D] text-[#9FE1CB] border border-[#16382E] text-xs max-w-full"
                     >
                       <span className="truncate max-w-xs">{urlItem}</span>
                       <button
                         type="button"
                         onClick={() => handleRemoveOtherUrl(idx)}
-                        className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 ml-1 font-bold"
+                        className="text-[#5E8275] hover:text-[#F0FDF4] ml-1 font-bold"
                       >
                         &times;
                       </button>
@@ -649,8 +647,8 @@ export function AddClient() {
             </div>
 
             {/* C. Documents */}
-            <div className="space-y-1">
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-[#F0FDF4]">
                 📄 Upload Documents (PDF, DOCX, TXT, MD)
               </label>
               <input
@@ -658,20 +656,20 @@ export function AddClient() {
                 multiple
                 accept=".pdf,.docx,.pptx,.xlsx,.doc,.ppt,.xls,.txt,.md"
                 onChange={handleOtherDocumentsChange}
-                className="w-full px-3.5 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-[11px] file:font-semibold file:bg-zinc-100 dark:file:bg-zinc-700 file:text-zinc-700 dark:file:text-zinc-200 hover:file:bg-zinc-200"
+                className="w-full px-3.5 py-2 rounded-xl border border-[#16382E] bg-[#040D0A] text-[#F0FDF4] text-xs file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-[#0E241D] file:text-[#34D399] hover:file:bg-[#16382E] cursor-pointer"
               />
               {otherDocuments.length > 0 && (
                 <div className="flex flex-wrap gap-2 pt-1.5">
                   {otherDocuments.map((doc, idx) => (
                     <span
                       key={idx}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#0E241D] text-[#9FE1CB] border border-[#16382E] text-xs"
                     >
                       <span>📄 {doc.name}</span>
                       <button
                         type="button"
                         onClick={() => handleRemoveOtherDocument(idx)}
-                        className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 ml-1 font-bold"
+                        className="text-[#5E8275] hover:text-[#F0FDF4] ml-1 font-bold"
                       >
                         &times;
                       </button>
@@ -682,8 +680,8 @@ export function AddClient() {
             </div>
 
             {/* D. Images */}
-            <div className="space-y-1">
-              <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-[#F0FDF4]">
                 🖼️ Upload Images (PNG, JPG, WEBP)
               </label>
               <input
@@ -691,21 +689,21 @@ export function AddClient() {
                 multiple
                 accept="image/png,image/jpeg,image/webp"
                 onChange={handleOtherImagesChange}
-                className="w-full px-3.5 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 text-xs file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-[11px] file:font-semibold file:bg-zinc-100 dark:file:bg-zinc-700 file:text-zinc-700 dark:file:text-zinc-200 hover:file:bg-zinc-200"
+                className="w-full px-3.5 py-2 rounded-xl border border-[#16382E] bg-[#040D0A] text-[#F0FDF4] text-xs file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-[#0E241D] file:text-[#34D399] hover:file:bg-[#16382E] cursor-pointer"
               />
               {otherImagePreviews.length > 0 && (
                 <div className="flex flex-wrap gap-3 pt-2">
                   {otherImagePreviews.map((src, idx) => (
                     <div
                       key={idx}
-                      className="relative w-24 h-24 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 group"
+                      className="relative w-24 h-24 rounded-xl overflow-hidden border border-[#16382E] group"
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={src} alt={`Upload ${idx + 1}`} className="w-full h-full object-cover" />
                       <button
                         type="button"
                         onClick={() => handleRemoveOtherImage(idx)}
-                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 text-white flex items-center justify-center text-xs hover:bg-black"
+                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/80 text-white flex items-center justify-center text-xs hover:bg-black"
                       >
                         &times;
                       </button>
@@ -723,12 +721,12 @@ export function AddClient() {
             type="button"
             onClick={handleGenerateMetadata}
             disabled={isGenerating}
-            className="py-2.5 px-5 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 text-xs font-semibold transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm"
+            className="py-2.5 px-5 rounded-xl bg-[#10B981] hover:bg-[#34D399] text-[#040D0A] text-xs font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.25)] hover:shadow-[0_0_20px_rgba(52,211,153,0.4)] disabled:opacity-50 flex items-center gap-2 active:scale-[0.98]"
           >
             {isGenerating ? (
               <>
-                <span className="w-3.5 h-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                <span>Generating Metadata with Gemma...</span>
+                <span className="w-3.5 h-3.5 rounded-full border-2 border-[#040D0A] border-t-transparent animate-spin" />
+                <span>Enriching with Smart Capture...</span>
               </>
             ) : (
               <>
@@ -740,17 +738,21 @@ export function AddClient() {
         </div>
 
         {generationError && (
-          <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-xs text-red-600 dark:text-red-400">
-            {generationError}
+          <div className="p-3.5 rounded-xl bg-red-950/40 border border-red-900/60 text-xs text-red-300 flex items-start gap-2">
+            <span className="text-red-400 font-bold">•</span>
+            <span>{generationError}</span>
           </div>
         )}
 
         {/* Duplicate Warning Banner */}
         {duplicateCheck?.isDuplicate && duplicateCheck.existingItem && (
-          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-xs text-amber-800 dark:text-amber-300 flex items-start justify-between gap-3">
+          <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-800/60 text-xs text-amber-200 flex items-start justify-between gap-3">
             <div>
-              <p className="font-semibold">⚠️ Potential duplicate detected in your library!</p>
-              <p className="mt-0.5 text-amber-700 dark:text-amber-400">
+              <p className="font-bold flex items-center gap-1.5 text-amber-300">
+                <span>⚠️</span>
+                <span>This appears to already exist in your library.</span>
+              </p>
+              <p className="mt-1 text-amber-200/80">
                 You already saved &ldquo;{duplicateCheck.existingItem.title}&rdquo; on{" "}
                 {new Date(duplicateCheck.existingItem.createdAt).toLocaleDateString()}.
               </p>
@@ -759,7 +761,7 @@ export function AddClient() {
               href={`/items/${duplicateCheck.existingItem.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-2.5 py-1 rounded bg-amber-200/60 dark:bg-amber-800/60 font-medium hover:underline shrink-0"
+              className="px-3 py-1.5 rounded-lg bg-amber-900/60 text-amber-200 border border-amber-700/60 font-semibold hover:bg-amber-800/80 shrink-0 transition-colors"
             >
               View Existing Item &rarr;
             </Link>
@@ -768,13 +770,13 @@ export function AddClient() {
       </div>
 
       {/* 3. Review & Save */}
-      <form onSubmit={handleSave} className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-4">
+      <form onSubmit={handleSave} className="bg-[#081712] border border-[#16382E] rounded-2xl p-5 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.3)] space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#16382E] pb-4">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#9FE1CB]">
               3. Review & Enrich Asset Metadata
             </label>
-            <p className="text-xs text-zinc-400 mt-0.5">
+            <p className="text-xs text-[#5E8275] mt-0.5">
               Review and customize title, description, tags, and preview image before saving.
             </p>
           </div>
@@ -784,7 +786,7 @@ export function AddClient() {
               <button
                 type="button"
                 onClick={clearAiSuggestions}
-                className="py-1.5 px-3 rounded-lg border border-zinc-200 dark:border-zinc-700 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                className="py-1.5 px-3 rounded-lg border border-[#16382E] bg-[#040D0A] text-xs font-medium text-[#9FE1CB] hover:bg-[#0E241D] hover:text-[#F0FDF4] transition-colors"
               >
                 Clear AI Suggestions
               </button>
@@ -794,23 +796,23 @@ export function AddClient() {
               type="button"
               onClick={handleGenerateMetadata}
               disabled={isGenerating}
-              className="py-1.5 px-3.5 rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-semibold transition-colors disabled:opacity-50 flex items-center gap-1.5"
+              className="py-1.5 px-3.5 rounded-lg bg-[#0E241D] text-[#34D399] border border-[#16382E] hover:bg-[#16382E] hover:text-[#F0FDF4] text-xs font-semibold transition-colors disabled:opacity-50 flex items-center gap-1.5"
             >
               <span>✨</span>
-              <span>Re-run Gemma</span>
+              <span>Re-run Smart Capture</span>
             </button>
           </div>
         </div>
 
         <div className="space-y-4">
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#9FE1CB]">
                 Title *
               </label>
               {hasAiSuggestions && (
-                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium">
-                  ✨ Gemma Generated
+                <span className="text-[10px] text-[#34D399] font-medium flex items-center gap-1">
+                  <span>✨</span> Smart Capture Generated
                 </span>
               )}
             </div>
@@ -820,12 +822,12 @@ export function AddClient() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Descriptive title for this knowledge asset"
-              className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#16382E] bg-[#040D0A] text-[#F0FDF4] placeholder-[#5E8275] text-sm focus:outline-none focus:border-[#34D399] focus:ring-1 focus:ring-[#34D399] transition-colors"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 mb-1">
+            <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#9FE1CB] mb-1.5">
               Description / Summary
             </label>
             <textarea
@@ -833,17 +835,17 @@ export function AddClient() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Concise contextual summary of why this knowledge is valuable"
-              className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#16382E] bg-[#040D0A] text-[#F0FDF4] placeholder-[#5E8275] text-sm focus:outline-none focus:border-[#34D399] focus:ring-1 focus:ring-[#34D399] transition-colors"
             />
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#9FE1CB]">
                 Tags (comma separated)
               </label>
               {aiGeneratedTags.length > 0 && (
-                <span className="text-[10px] text-zinc-400">
+                <span className="text-[10px] text-[#34D399]">
                   {aiGeneratedTags.length} AI tags suggested
                 </span>
               )}
@@ -853,13 +855,13 @@ export function AddClient() {
               value={tagsInput}
               onChange={(e) => setTagsInput(e.target.value)}
               placeholder="architecture, nextjs, security, ai"
-              className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#16382E] bg-[#040D0A] text-[#F0FDF4] placeholder-[#5E8275] text-sm focus:outline-none focus:border-[#34D399] focus:ring-1 focus:ring-[#34D399] transition-colors"
             />
           </div>
 
           {/* Preserved Preview Image URL Field */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 mb-1">
+            <label className="block text-[11px] font-semibold uppercase tracking-wider text-[#9FE1CB] mb-1.5">
               Preview Image URL (Optional)
             </label>
             <input
@@ -867,19 +869,19 @@ export function AddClient() {
               value={previewImageUrl}
               onChange={(e) => setPreviewImageUrl(e.target.value)}
               placeholder="https://example.com/thumbnail.jpg"
-              className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#16382E] bg-[#040D0A] text-[#F0FDF4] placeholder-[#5E8275] text-sm focus:outline-none focus:border-[#34D399] focus:ring-1 focus:ring-[#34D399] transition-colors"
             />
           </div>
         </div>
 
         {/* 4. Potential Connections Section (Deterministic Non-AI) */}
         {potentialConnections.length > 0 && (
-          <div className="border-t border-zinc-100 dark:border-zinc-800 pt-5">
+          <div className="border-t border-[#16382E] pt-5">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 flex items-center gap-1.5">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#9FE1CB] flex items-center gap-1.5">
                 <span>🔗</span> Potential Connections in Your Shelf ({potentialConnections.length})
               </h3>
-              <span className="text-[10px] text-zinc-400">
+              <span className="text-[10px] text-[#5E8275]">
                 Deterministic candidate matching
               </span>
             </div>
@@ -887,20 +889,20 @@ export function AddClient() {
               {potentialConnections.map((candidate) => (
                 <div
                   key={candidate.id}
-                  className="p-3 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30 flex flex-col justify-between"
+                  className="p-3.5 rounded-xl border border-[#16382E] bg-[#040D0A]/70 flex flex-col justify-between"
                 >
                   <div>
-                    <div className="flex items-center justify-between gap-1 mb-1">
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300">
+                    <div className="flex items-center justify-between gap-1 mb-1.5">
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#0E241D] text-[#34D399] border border-[#16382E]">
                         {candidate.contentType}
                       </span>
                       {candidate.overlappingTags.length > 0 && (
-                        <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium">
+                        <span className="text-[10px] text-[#9FE1CB] font-medium">
                           Shared: {candidate.overlappingTags.join(", ")}
                         </span>
                       )}
                     </div>
-                    <p className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 line-clamp-1">
+                    <p className="text-xs font-semibold text-[#F0FDF4] line-clamp-1">
                       {candidate.title}
                     </p>
                   </div>
@@ -908,9 +910,10 @@ export function AddClient() {
                     href={`/items/${candidate.id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[11px] text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 hover:underline mt-2 self-start"
+                    className="text-[11px] text-[#34D399] hover:underline mt-2 self-start flex items-center gap-1 font-semibold"
                   >
-                    Open in New Tab &rarr;
+                    <span>Open in New Tab</span>
+                    <span>&rarr;</span>
                   </Link>
                 </div>
               ))}
@@ -919,24 +922,25 @@ export function AddClient() {
         )}
 
         {saveError && (
-          <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-xs text-red-600 dark:text-red-400">
-            {saveError}
+          <div className="p-3.5 rounded-xl bg-red-950/40 border border-red-900/60 text-xs text-red-300 flex items-start gap-2">
+            <span className="text-red-400 font-bold">•</span>
+            <span>{saveError}</span>
           </div>
         )}
 
-        <div className="flex justify-end gap-3 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+        <div className="flex justify-end gap-3 pt-3 border-t border-[#16382E]">
           <Link
             href="/library"
-            className="py-2.5 px-4 rounded-lg border border-zinc-200 dark:border-zinc-700 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+            className="py-2.5 px-4 rounded-xl border border-[#16382E] bg-[#040D0A] text-xs font-semibold text-[#9FE1CB] hover:bg-[#0E241D] hover:text-[#F0FDF4] transition-colors"
           >
             Cancel
           </Link>
           <button
             type="submit"
             disabled={isSaving || !title.trim()}
-            className="py-2.5 px-6 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-semibold hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-50 shadow-sm"
+            className="py-2.5 px-6 rounded-xl bg-[#10B981] hover:bg-[#34D399] text-[#040D0A] text-xs font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.25)] hover:shadow-[0_0_20px_rgba(52,211,153,0.4)] disabled:opacity-50 active:scale-[0.98]"
           >
-            {isSaving ? "Saving to Shelf..." : "Save Item to Shelf"}
+            {isSaving ? "Saving to Vault..." : "Save Item to Vault"}
           </button>
         </div>
       </form>

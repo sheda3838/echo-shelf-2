@@ -84,7 +84,7 @@ export function ItemDetailClient({ item: initialItem, userEmail }: ItemDetailCli
       if (count > 0) {
         setConnectionMessage({
           type: "success",
-          text: `Gemma discovered and added ${count} new semantic connection${count > 1 ? "s" : ""}!`,
+          text: `Discovered and added ${count} new semantic connection${count > 1 ? "s" : ""} to your vault!`,
         });
         setItem((prev) => ({
           ...prev,
@@ -103,7 +103,7 @@ export function ItemDetailClient({ item: initialItem, userEmail }: ItemDetailCli
       } else {
         setConnectionMessage({
           type: "info",
-          text: "No new conceptual connections were found with your other saved items.",
+          text: "No new conceptual connections were found with your existing saved items.",
         });
       }
     } catch (err: unknown) {
@@ -137,33 +137,34 @@ export function ItemDetailClient({ item: initialItem, userEmail }: ItemDetailCli
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
+    <div className="min-h-screen bg-[#040D0A] text-[#F0FDF4] flex flex-col">
       <Navigation userEmail={userEmail} />
 
-      <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-8 space-y-6">
         {/* Back Link & Actions */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pb-2 border-b border-[#16382E]">
           <Link
             href="/library"
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#9FE1CB] hover:text-[#F0FDF4] transition-colors"
           >
-            <span>&larr;</span> Back to Library
+            <span>&larr;</span>
+            <span>Back to Library</span>
           </Link>
 
           <button
             onClick={handleDelete}
             disabled={isDeleting}
-            className="text-xs font-medium text-red-600 dark:text-red-400 hover:text-red-700 py-1.5 px-3 rounded-lg border border-red-200 dark:border-red-900/40 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors disabled:opacity-50"
+            className="text-xs font-medium text-red-400 hover:text-red-300 py-1.5 px-3 rounded-xl border border-red-900/60 bg-red-950/30 hover:bg-red-950/60 transition-colors disabled:opacity-50"
           >
             {isDeleting ? "Deleting..." : "Delete Item"}
           </button>
         </div>
 
         {/* Item Header / Overview Card */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+        <div className="bg-[#081712] border border-[#16382E] rounded-2xl overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
           {/* Optional 16:9 Preview */}
           {item.metadata?.imageUrl ? (
-            <div className="aspect-video w-full bg-zinc-100 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-800 overflow-hidden relative">
+            <div className="aspect-video w-full bg-[#0E241D] border-b border-[#16382E] overflow-hidden relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={item.metadata.imageUrl}
@@ -172,8 +173,8 @@ export function ItemDetailClient({ item: initialItem, userEmail }: ItemDetailCli
               />
             </div>
           ) : (
-            <div className="aspect-[21/9] w-full bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-900 dark:to-zinc-800 flex items-center justify-center border-b border-zinc-200 dark:border-zinc-800">
-              <span className="text-2xl font-bold tracking-tight text-zinc-300 dark:text-zinc-700 select-none">
+            <div className="aspect-[21/9] w-full bg-gradient-to-br from-[#081712] to-[#0E241D] flex items-center justify-center border-b border-[#16382E]">
+              <span className="text-xl sm:text-2xl font-bold tracking-widest text-[#16382E] uppercase select-none">
                 {item.contentType}
               </span>
             </div>
@@ -183,27 +184,27 @@ export function ItemDetailClient({ item: initialItem, userEmail }: ItemDetailCli
             {/* Meta badges row */}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900">
+                <span className="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-[#0E241D] text-[#34D399] border border-[#16382E]">
                   {item.contentType}
                 </span>
                 {item.metadata?.siteName && (
-                  <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                  <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-[#040D0A] text-[#9FE1CB] border border-[#16382E]">
                     {item.metadata.siteName}
                   </span>
                 )}
               </div>
-              <span className="text-xs text-zinc-400 font-mono">
+              <span className="text-xs text-[#5E8275] font-mono">
                 Saved {new Date(item.createdAt).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
               </span>
             </div>
 
             {/* Title & Description */}
             <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50 leading-snug">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#F0FDF4] leading-snug">
                 {item.title}
               </h1>
               {item.description && (
-                <p className="mt-3 text-base text-zinc-600 dark:text-zinc-300 leading-relaxed">
+                <p className="mt-3 text-sm sm:text-base text-[#9FE1CB]/80 leading-relaxed">
                   {item.description}
                 </p>
               )}
@@ -211,11 +212,11 @@ export function ItemDetailClient({ item: initialItem, userEmail }: ItemDetailCli
 
             {/* Tags */}
             {item.tags && item.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 pt-2">
+              <div className="flex flex-wrap gap-1.5 pt-1">
                 {item.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="px-2.5 py-1 rounded-lg text-xs font-medium bg-zinc-100 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700/60"
+                    className="px-2.5 py-1 rounded-lg text-xs font-medium bg-[#0E241D] text-[#9FE1CB] border border-[#16382E]"
                   >
                     #{tag}
                   </span>
@@ -224,8 +225,8 @@ export function ItemDetailClient({ item: initialItem, userEmail }: ItemDetailCli
             )}
 
             {/* Source Information */}
-            <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 space-y-2">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-zinc-400 block">
+            <div className="p-4 rounded-xl bg-[#040D0A]/70 border border-[#16382E] space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#5E8275] block">
                 Source Reference
               </span>
 
@@ -237,7 +238,7 @@ export function ItemDetailClient({ item: initialItem, userEmail }: ItemDetailCli
                         href={item.source.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline truncate"
+                        className="text-xs sm:text-sm font-semibold text-[#34D399] hover:underline truncate"
                       >
                         {item.source.url}
                       </a>
@@ -245,13 +246,14 @@ export function ItemDetailClient({ item: initialItem, userEmail }: ItemDetailCli
                         href={item.source.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-semibold hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shrink-0"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0E241D] hover:bg-[#16382E] text-[#34D399] border border-[#16382E] hover:border-[#235343] text-xs font-bold transition-colors shrink-0"
                       >
-                        Open Original &rarr;
+                        <span>Open Original</span>
+                        <span>&rarr;</span>
                       </a>
                     </>
                   ) : (
-                    <span className="text-sm font-mono text-zinc-500 dark:text-zinc-400 truncate">
+                    <span className="text-xs font-mono text-[#5E8275] truncate">
                       {item.source.url}
                     </span>
                   )}
@@ -259,10 +261,10 @@ export function ItemDetailClient({ item: initialItem, userEmail }: ItemDetailCli
               )}
 
               {item.source.type === "file" && (
-                <div className="flex items-center justify-between text-xs text-zinc-700 dark:text-zinc-300">
+                <div className="flex items-center justify-between text-xs text-[#F0FDF4]">
                   <span className="font-mono">{item.source.fileName || "Uploaded Document"}</span>
                   {item.source.fileSize && (
-                    <span className="text-zinc-400">
+                    <span className="text-[#5E8275]">
                       {(item.source.fileSize / 1024).toFixed(1)} KB
                     </span>
                   )}
@@ -270,7 +272,7 @@ export function ItemDetailClient({ item: initialItem, userEmail }: ItemDetailCli
               )}
 
               {item.source.type === "text" && item.source.textSnippet && (
-                <div className="max-h-60 overflow-y-auto p-3 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs font-mono text-zinc-700 dark:text-zinc-300 whitespace-pre-wrap">
+                <div className="max-h-60 overflow-y-auto p-3 rounded-lg bg-[#081712] border border-[#16382E] text-xs font-mono text-[#9FE1CB] whitespace-pre-wrap">
                   {item.source.textSnippet}
                 </div>
               )}
@@ -279,34 +281,34 @@ export function ItemDetailClient({ item: initialItem, userEmail }: ItemDetailCli
         </div>
 
         {/* Smart Connections Section */}
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 sm:p-8 space-y-6 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-5">
+        <div className="bg-[#081712] border border-[#16382E] rounded-2xl p-6 sm:p-8 space-y-6 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#16382E] pb-5">
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">
+                <h2 className="text-lg font-bold text-[#F0FDF4]">
                   Smart Connections
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-[#0E241D] text-[#34D399] border border-[#16382E]">
                   {item.connections?.length || 0}
                 </span>
               </div>
-              <p className="text-xs text-zinc-500 mt-1">
-                Gemma-powered semantic links between your saved knowledge assets.
+              <p className="text-xs text-[#9FE1CB]/70 mt-1">
+                AI-powered semantic links connecting this asset to related knowledge across your vault.
               </p>
             </div>
 
             <button
               onClick={handleCheckConnections}
               disabled={analyzingConnections}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-semibold hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-sm disabled:opacity-50 shrink-0"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#10B981] hover:bg-[#34D399] text-[#040D0A] text-xs font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.25)] hover:shadow-[0_0_20px_rgba(52,211,153,0.4)] disabled:opacity-50 shrink-0 active:scale-[0.98]"
             >
               {analyzingConnections ? (
                 <>
-                  <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <svg className="animate-spin h-3.5 w-3.5 text-[#040D0A]" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                   </svg>
-                  <span>Analyzing with Gemma...</span>
+                  <span>Analyzing Connections...</span>
                 </>
               ) : (
                 <>
@@ -322,10 +324,10 @@ export function ItemDetailClient({ item: initialItem, userEmail }: ItemDetailCli
             <div
               className={`p-3.5 rounded-xl text-xs font-medium border ${
                 connectionMessage.type === "success"
-                  ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
+                  ? "bg-[#064E3B]/40 text-[#34D399] border-[#10B981]/50"
                   : connectionMessage.type === "error"
-                  ? "bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800"
-                  : "bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800"
+                  ? "bg-red-950/40 text-red-300 border-red-900/60"
+                  : "bg-[#0E241D] text-[#9FE1CB] border-[#16382E]"
               }`}
             >
               {connectionMessage.text}
@@ -338,22 +340,22 @@ export function ItemDetailClient({ item: initialItem, userEmail }: ItemDetailCli
               {item.connections.map((c, idx) => (
                 <div
                   key={`${c.connectedItemId}-${idx}`}
-                  className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-800/30 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors space-y-3"
+                  className="p-4 rounded-xl border border-[#16382E] bg-[#040D0A]/70 hover:border-[#235343] transition-colors space-y-3"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded text-[11px] font-semibold uppercase tracking-wide bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300">
+                      <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[#0E241D] text-[#34D399] border border-[#16382E]">
                         {c.relationshipType}
                       </span>
                       {c.strength !== undefined && (
                         <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-medium ${
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-semibold ${
                             c.strength >= 0.8
-                              ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300"
-                              : "bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300"
+                              ? "bg-[#064E3B] text-[#34D399] border border-[#10B981]/40"
+                              : "bg-[#16382E] text-[#9FE1CB] border border-[#235343]"
                           }`}
                         >
-                          {c.strength >= 0.8 ? "Strong" : "Moderate"}
+                          {c.strength >= 0.8 ? "Strong Match" : "Moderate Match"}
                         </span>
                       )}
                     </div>
@@ -362,9 +364,10 @@ export function ItemDetailClient({ item: initialItem, userEmail }: ItemDetailCli
                       href={`/items/${c.connectedItemId}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 hover:underline flex items-center gap-1"
+                      className="text-xs font-semibold text-[#34D399] hover:underline flex items-center gap-1"
                     >
-                      <span>View Connected Item</span> &rarr;
+                      <span>View Connected Item</span>
+                      <span>&rarr;</span>
                     </Link>
                   </div>
 
@@ -372,13 +375,13 @@ export function ItemDetailClient({ item: initialItem, userEmail }: ItemDetailCli
                     href={`/items/${c.connectedItemId}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block font-semibold text-sm text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400"
+                    className="block font-bold text-sm text-[#F0FDF4] hover:text-[#34D399] transition-colors"
                   >
                     {c.connectedItemTitle || "Saved Item"}
                   </Link>
 
                   {c.explanation && (
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400 leading-relaxed bg-white dark:bg-zinc-900 p-3 rounded-lg border border-zinc-200/80 dark:border-zinc-800">
+                    <p className="text-xs text-[#9FE1CB]/85 leading-relaxed bg-[#081712] p-3 rounded-lg border border-[#16382E]">
                       💡 {c.explanation}
                     </p>
                   )}
@@ -387,11 +390,11 @@ export function ItemDetailClient({ item: initialItem, userEmail }: ItemDetailCli
             </div>
           ) : (
             <div className="py-10 text-center space-y-2">
-              <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                No connections discovered yet.
+              <p className="text-sm font-semibold text-[#F0FDF4]">
+                No connections discovered yet
               </p>
-              <p className="text-xs text-zinc-400 max-w-md mx-auto">
-                Click &ldquo;Check Connections&rdquo; above to let Gemma analyze your library and discover conceptual links, prerequisites, or complementary ideas.
+              <p className="text-xs text-[#9FE1CB]/70 max-w-md mx-auto leading-relaxed">
+                Click &ldquo;Check Connections&rdquo; above to let the intelligence layer scan your library and discover conceptual links, prerequisites, or complementary ideas.
               </p>
             </div>
           )}

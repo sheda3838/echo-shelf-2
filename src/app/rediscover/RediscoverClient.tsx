@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Navigation } from "@/components/Navigation";
 
 export interface RediscoveryResultItem {
@@ -62,7 +63,7 @@ export function RediscoverClient({
       const count = data.results?.length || 0;
       if (count > 0) {
         setSuccessMessage(
-          `Discovered ${count} current real-world event${count > 1 ? "s" : ""} relevant to your knowledge shelf!`
+          `Discovered ${count} current real-world event${count > 1 ? "s" : ""} relevant to your knowledge vault!`
         );
       } else {
         setSuccessMessage(
@@ -81,38 +82,38 @@ export function RediscoverClient({
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50">
+    <div className="min-h-screen bg-[#040D0A] text-[#F0FDF4] flex flex-col">
       <Navigation userEmail={userEmail} />
 
-      <main className="max-w-6xl mx-auto px-4 py-8 space-y-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         {/* Header Section */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#16382E] pb-6">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+              <h1 className="text-2xl font-bold tracking-tight text-[#F0FDF4]">
                 Contextual Rediscovery
               </h1>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#0E241D] text-[#34D399] border border-[#16382E]">
                 {results.length}
               </span>
             </div>
-            <p className="text-xs text-zinc-500 mt-1 max-w-xl">
-              &ldquo;What is happening now that makes something I saved before relevant again?&rdquo; Cross-references live world events with your knowledge clusters using Gemma.
+            <p className="text-xs text-[#9FE1CB]/70 mt-1 max-w-xl leading-relaxed">
+              &ldquo;What is happening now that makes something I saved before relevant again?&rdquo; Cross-references live world events with your knowledge clusters.
             </p>
           </div>
 
           <button
             onClick={handleRunRediscovery}
             disabled={isRefreshing || clusterCount === 0}
-            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-semibold hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-sm disabled:opacity-50 shrink-0"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-[#10B981] hover:bg-[#34D399] text-[#040D0A] text-xs font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.25)] hover:shadow-[0_0_20px_rgba(52,211,153,0.4)] disabled:opacity-50 shrink-0 active:scale-[0.98]"
           >
             {isRefreshing ? (
               <>
-                <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <svg className="animate-spin h-3.5 w-3.5 text-[#040D0A]" viewBox="0 0 24 24" fill="none">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                 </svg>
-                <span>Searching &amp; Reasoning with Gemma...</span>
+                <span>Scanning Live News...</span>
               </>
             ) : (
               <>
@@ -125,29 +126,31 @@ export function RediscoverClient({
 
         {/* Feedback banners */}
         {error && (
-          <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-xs text-red-700 dark:text-red-400">
-            {error}
+          <div className="p-4 rounded-xl bg-red-950/40 border border-red-900/60 text-xs text-red-300 flex items-start gap-2">
+            <span className="text-red-400 font-bold">•</span>
+            <span>{error}</span>
           </div>
         )}
 
         {successMessage && (
-          <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300">
-            {successMessage}
+          <div className="p-4 rounded-xl bg-[#064E3B]/40 border border-[#10B981]/50 text-xs text-[#34D399] flex items-start gap-2">
+            <span className="font-bold">✓</span>
+            <span>{successMessage}</span>
           </div>
         )}
 
         {/* Dependency Notice: Clusters required */}
         {clusterCount === 0 && (
-          <div className="p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-xs text-amber-800 dark:text-amber-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="p-5 rounded-2xl bg-amber-950/40 border border-amber-800/60 text-xs text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
             <div>
-              <p className="font-semibold text-sm">Knowledge Clusters Required</p>
-              <p className="mt-0.5 text-amber-700 dark:text-amber-400">
+              <p className="font-bold text-sm text-amber-300">Knowledge Clusters Required</p>
+              <p className="mt-1 text-amber-200/80 leading-relaxed">
                 Contextual Rediscovery generates targeted search queries from your thematic Knowledge Clusters. Generate clusters first before running rediscovery.
               </p>
             </div>
             <Link
               href="/clusters"
-              className="px-4 py-2 rounded-xl bg-amber-900 dark:bg-amber-100 text-white dark:text-amber-950 font-semibold text-xs shrink-0 self-start sm:self-auto hover:bg-amber-800 dark:hover:bg-amber-200 transition-colors"
+              className="px-4 py-2 rounded-xl bg-amber-900/60 text-amber-200 border border-amber-700/60 font-semibold text-xs shrink-0 self-start sm:self-auto hover:bg-amber-800/80 transition-colors"
             >
               Go to Clusters &rarr;
             </Link>
@@ -156,23 +159,29 @@ export function RediscoverClient({
 
         {/* Rediscovery Results Grid */}
         {results.length === 0 ? (
-          <div className="py-20 text-center bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 space-y-4">
-            <div className="w-12 h-12 rounded-full bg-zinc-100 dark:bg-zinc-800 mx-auto flex items-center justify-center text-xl">
-              💡
+          <div className="py-20 text-center bg-[#081712] border border-[#16382E] rounded-2xl p-8 space-y-4 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+            <div className="relative w-14 h-14 mb-2 mx-auto rounded-2xl overflow-hidden p-1 bg-[#0E241D] border border-[#1E463A]">
+              <Image
+                src="/logo.png"
+                alt="Echo Shelf Emblem"
+                width={56}
+                height={56}
+                className="w-full h-full object-contain"
+              />
             </div>
             <div className="space-y-1">
-              <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+              <h3 className="text-base font-bold text-[#F0FDF4]">
                 No Contextual Resurfacing Yet
               </h3>
-              <p className="text-xs text-zinc-500 max-w-md mx-auto leading-relaxed">
-                Click &ldquo;Check What&apos;s Relevant Now&rdquo; above. Echo Shelf will query current news events related to your knowledge themes, evaluate them through Gemma, and resurface connections with strict quality filtering.
+              <p className="text-xs text-[#9FE1CB]/70 max-w-md mx-auto leading-relaxed">
+                Click &ldquo;Check What&apos;s Relevant Now&rdquo; above. Echo Shelf will query current news events related to your knowledge themes, evaluate them through semantic intelligence, and resurface connections with strict quality filtering.
               </p>
             </div>
             {clusterCount > 0 && (
               <button
                 onClick={handleRunRediscovery}
                 disabled={isRefreshing}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-semibold hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors shadow-sm"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#10B981] hover:bg-[#34D399] text-[#040D0A] text-xs font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.25)] hover:shadow-[0_0_20px_rgba(52,211,153,0.4)]"
               >
                 <span>📡</span>
                 <span>Check What&apos;s Relevant Now</span>
@@ -184,75 +193,78 @@ export function RediscoverClient({
             {results.map((res) => (
               <div
                 key={res._id}
-                className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm flex flex-col justify-between space-y-5 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all"
+                className="bg-[#081712] border border-[#16382E] hover:border-[#235343] rounded-2xl p-6 shadow-[0_4px_20px_rgba(0,0,0,0.3)] flex flex-col justify-between space-y-5 transition-all group"
               >
-                <div className="space-y-3">
-                  {/* Relevance & Relationship Row */}
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300">
-                        {res.relationshipType}
-                      </span>
-                      {res.relevance !== undefined && (
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-                            res.relevance >= 0.8
-                              ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300"
-                              : "bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300"
-                          }`}
-                        >
-                          {res.relevance >= 0.8 ? "Strong Relevance" : "Moderate Relevance"}
+                <div className="space-y-4">
+                  {/* CURRENT ARTICLE / DEVELOPMENT */}
+                  <div>
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-[#0E241D] text-[#34D399] border border-[#16382E]">
+                          {res.relationshipType}
+                        </span>
+                        {res.relevance !== undefined && (
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-semibold ${
+                              res.relevance >= 0.8
+                                ? "bg-[#064E3B] text-[#34D399] border border-[#10B981]/40"
+                                : "bg-[#16382E] text-[#9FE1CB] border border-[#235343]"
+                            }`}
+                          >
+                            {res.relevance >= 0.8 ? "Strong Relevance" : "Moderate Relevance"}
+                          </span>
+                        )}
+                      </div>
+
+                      {res.article.source && (
+                        <span className="text-[11px] font-medium text-[#5E8275]">
+                          {res.article.source}
                         </span>
                       )}
                     </div>
 
-                    {res.article.source && (
-                      <span className="text-[11px] font-medium text-zinc-400">
-                        {res.article.source}
-                      </span>
-                    )}
+                    {/* Article Headline */}
+                    <div>
+                      {/^https?:\/\//i.test(res.article.url) ? (
+                        <a
+                          href={res.article.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-base font-bold text-[#F0FDF4] group-hover:text-[#34D399] hover:underline leading-snug line-clamp-2 block transition-colors"
+                        >
+                          {res.article.title}
+                        </a>
+                      ) : (
+                        <span className="text-base font-bold text-[#F0FDF4] leading-snug line-clamp-2 block">
+                          {res.article.title}
+                        </span>
+                      )}
+                      {res.article.snippet && (
+                        <p className="text-xs text-[#9FE1CB]/75 line-clamp-2 mt-1.5 leading-relaxed">
+                          {res.article.snippet}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Article Headline */}
-                  <div>
-                    {/^https?:\/\//i.test(res.article.url) ? (
-                      <a
-                        href={res.article.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-base font-bold text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400 hover:underline leading-snug line-clamp-2 block"
-                      >
-                        {res.article.title}
-                      </a>
-                    ) : (
-                      <span className="text-base font-bold text-zinc-900 dark:text-zinc-100 leading-snug line-clamp-2 block">
-                        {res.article.title}
-                      </span>
-                    )}
-                    {res.article.snippet && (
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 mt-1.5 leading-relaxed">
-                        {res.article.snippet}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* "Why this matters to your shelf" Highlight */}
-                  <div className="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/60 space-y-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
-                      💡 Why this matters to your shelf
+                  {/* WHY THIS MATTERS TO YOUR SHELF */}
+                  <div className="p-3.5 rounded-xl bg-[#0E241D] border border-[#1E463A] space-y-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#34D399] flex items-center gap-1.5">
+                      <span>💡</span>
+                      <span>Why this matters to your vault</span>
                     </span>
-                    <p className="text-xs text-zinc-700 dark:text-zinc-200 leading-relaxed font-medium">
+                    <p className="text-xs text-[#F0FDF4] leading-relaxed font-medium">
                       {res.explanation}
                     </p>
                   </div>
                 </div>
 
-                {/* Footer: Connected Knowledge Asset */}
-                <div className="pt-4 border-t border-zinc-100 dark:border-zinc-800/80 space-y-2">
-                  <div className="flex items-center justify-between text-[11px] text-zinc-400">
-                    <span>Resurfaced Asset:</span>
+                {/* RESURFACED SAVED KNOWLEDGE */}
+                <div className="pt-4 border-t border-[#16382E] space-y-2">
+                  <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[#5E8275]">
+                    <span>Resurfaced Vault Asset</span>
                     {res.knowledgeClusterTitle && (
-                      <span className="truncate max-w-[150px]">
+                      <span className="truncate max-w-[150px] text-[#9FE1CB]">
                         Cluster: {res.knowledgeClusterTitle}
                       </span>
                     )}
@@ -263,19 +275,19 @@ export function RediscoverClient({
                       href={`/items/${res.savedItemId}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="group/item flex items-center justify-between gap-2 p-2.5 rounded-xl bg-zinc-100/60 dark:bg-zinc-800/40 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                      className="group/item flex items-center justify-between gap-2 p-2.5 rounded-xl bg-[#040D0A]/80 border border-[#16382E] hover:border-[#34D399]/40 hover:bg-[#0E241D] transition-colors"
                     >
-                      <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 group-hover/item:text-blue-600 dark:group-hover/item:text-blue-400 truncate">
+                      <span className="text-xs font-semibold text-[#F0FDF4] group-hover/item:text-[#34D399] truncate transition-colors">
                         {res.savedItemTitle || "View Saved Item"}
                       </span>
                       {res.savedItemContentType && (
-                        <span className="px-2 py-0.5 rounded text-[9px] font-semibold bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 uppercase border border-zinc-200 dark:border-zinc-700 shrink-0">
+                        <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-[#0E241D] text-[#34D399] uppercase border border-[#16382E] shrink-0">
                           {res.savedItemContentType}
                         </span>
                       )}
                     </Link>
                   ) : (
-                    <span className="text-xs text-zinc-400 italic">Saved asset reference</span>
+                    <span className="text-xs text-[#5E8275] italic">Saved asset reference</span>
                   )}
                 </div>
               </div>

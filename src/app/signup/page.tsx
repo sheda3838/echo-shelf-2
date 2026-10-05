@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { signup } from "@/app/auth/actions";
 import { GoogleSignInButton } from "@/components/GoogleSignInButton";
 
@@ -39,26 +40,42 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-4">
-      <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm p-8">
-        <div className="mb-6 text-center">
-          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+    <div className="min-h-screen flex items-center justify-center bg-[#040D0A] p-4 relative overflow-hidden">
+      {/* Subtle background ambient glow */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#10B981]/10 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="w-full max-w-md bg-[#081712] border border-[#16382E] rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] p-6 sm:p-8 relative z-10">
+        <div className="mb-8 text-center flex flex-col items-center">
+          <div className="relative w-16 h-16 mb-4 rounded-2xl overflow-hidden p-1 bg-[#0E241D] border border-[#1E463A] shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+            <Image
+              src="/logo.png"
+              alt="Echo Shelf Emblem"
+              width={64}
+              height={64}
+              className="w-full h-full object-contain"
+              priority
+            />
+          </div>
+
+          <h1 className="text-2xl font-bold tracking-tight text-[#F0FDF4]">
             Create an Account
           </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+          <p className="text-xs sm:text-sm text-[#9FE1CB]/80 mt-1.5">
             Start saving your knowledge assets securely
           </p>
         </div>
 
         {error && (
-          <div className="mb-5 p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-sm text-red-600 dark:text-red-400">
-            {error}
+          <div className="mb-5 p-3.5 rounded-xl bg-red-950/40 border border-red-900/60 text-xs text-red-300 flex items-start gap-2">
+            <span className="text-red-400 font-bold">•</span>
+            <span>{error}</span>
           </div>
         )}
 
         {message && (
-          <div className="mb-5 p-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 text-sm text-emerald-600 dark:text-emerald-400">
-            {message}
+          <div className="mb-5 p-3.5 rounded-xl bg-[#064E3B]/40 border border-[#10B981]/60 text-xs text-[#34D399] flex items-start gap-2">
+            <span className="font-bold">✓</span>
+            <span>{message}</span>
           </div>
         )}
 
@@ -66,7 +83,7 @@ export default function SignupPage() {
           <div>
             <label
               htmlFor="email"
-              className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 mb-1"
+              className="block text-[11px] font-semibold uppercase tracking-wider text-[#9FE1CB] mb-1.5"
             >
               Email Address
             </label>
@@ -77,14 +94,14 @@ export default function SignupPage() {
               autoComplete="email"
               required
               placeholder="you@example.com"
-              className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 text-sm"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#16382E] bg-[#040D0A] text-[#F0FDF4] placeholder-[#5E8275] focus:outline-none focus:border-[#34D399] focus:ring-1 focus:ring-[#34D399] text-sm transition-colors"
             />
           </div>
 
           <div>
             <label
               htmlFor="password"
-              className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 mb-1"
+              className="block text-[11px] font-semibold uppercase tracking-wider text-[#9FE1CB] mb-1.5"
             >
               Password
             </label>
@@ -98,14 +115,14 @@ export default function SignupPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 text-sm"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#16382E] bg-[#040D0A] text-[#F0FDF4] placeholder-[#5E8275] focus:outline-none focus:border-[#34D399] focus:ring-1 focus:ring-[#34D399] text-sm transition-colors"
             />
           </div>
 
           <div>
             <label
               htmlFor="confirmPassword"
-              className="block text-xs font-semibold uppercase tracking-wider text-zinc-700 dark:text-zinc-300 mb-1"
+              className="block text-[11px] font-semibold uppercase tracking-wider text-[#9FE1CB] mb-1.5"
             >
               Confirm Password
             </label>
@@ -118,14 +135,14 @@ export default function SignupPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-3.5 py-2.5 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 text-sm"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#16382E] bg-[#040D0A] text-[#F0FDF4] placeholder-[#5E8275] focus:outline-none focus:border-[#34D399] focus:ring-1 focus:ring-[#34D399] text-sm transition-colors"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 px-4 rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-50 text-sm"
+            className="w-full py-2.5 px-4 rounded-xl bg-[#10B981] hover:bg-[#34D399] text-[#040D0A] text-sm font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.25)] hover:shadow-[0_0_20px_rgba(52,211,153,0.4)] disabled:opacity-50 active:scale-[0.99] mt-2"
           >
             {loading ? "Creating account..." : "Sign Up"}
           </button>
@@ -133,20 +150,20 @@ export default function SignupPage() {
 
         <div className="relative my-6 text-center">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-zinc-200 dark:border-zinc-800" />
+            <div className="w-full border-t border-[#16382E]" />
           </div>
-          <span className="relative px-3 bg-white dark:bg-zinc-900 text-xs text-zinc-400 uppercase tracking-wider">
+          <span className="relative px-3 bg-[#081712] text-[11px] text-[#5E8275] uppercase tracking-wider">
             Or continue with
           </span>
         </div>
 
         <GoogleSignInButton label="Sign up with Google" />
 
-        <p className="mt-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="mt-6 text-center text-xs text-[#9FE1CB]/70">
           Already have an account?{" "}
           <Link
             href="/login"
-            className="font-medium text-zinc-900 dark:text-zinc-100 hover:underline"
+            className="font-semibold text-[#34D399] hover:underline"
           >
             Sign in
           </Link>
